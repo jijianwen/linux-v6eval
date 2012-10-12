@@ -63,6 +63,7 @@ use File::Basename;
 	vClear
 	vLog
 	vLogHTML
+	vLogTitle
 	vErrmsg
 	vRoundoff
 	vRemote
@@ -102,6 +103,8 @@ $exitSpecialOnly=6;	# Special Only
 $exitExceptHost=7;	# Except Host
 $exitExceptRouter=8;	# Except Router
 $exitExceptSpecial=9;	# Except Special
+$exitIPv4Only=14;	# IPv4 Only
+$exitIPv6Only=15;	# IPv6 Only
 $exitSkip=10;		# Skip
 $exitTypeMismatch=11;	# Type Mismatch
 
@@ -822,6 +825,22 @@ vLogHTML($)
 	};
 	prLogHTML($message);
 	prOut "$message" if $VLog == 0;
+}
+
+
+
+########################################################################
+sub
+vLogTitle($)
+{
+	my ($message,	# message to be logged
+    ) = @_;
+	prLog("</TD></TR>\n") if($vLogStat==$vLogStatOpenRow);
+	prLog("<TR><TD><BR></TD><TD>");
+	prLogHTML($message);
+	prOut "$message" if $VLog == 0;
+	prLog("</TD></TR>\n");
+	$vLogStat=$vLogStatCloseRow;
 }
 
 
@@ -1567,9 +1586,9 @@ parseArgs()
 	$Trace	    = $opt_trace ? $opt_trace : 0;
 	$KeepImd    = $opt_keepImd ? $opt_keepImd : 0;
 	$TnDef  = $opt_tn    ? $opt_tn  : "tn.def";
-	$TnDef  = searchPath("${SeqDir}:./:${V6Root}/etc/", $TnDef); 
+	$TnDef  = searchPath("${SeqDir}:${SeqDir}/../:${SeqDir}/../etc/:./:${V6Root}/etc/", $TnDef);
 	$NutDef = $opt_nut   ? $opt_nut : "nut.def";
-	$NutDef  = searchPath("${SeqDir}:./:${V6Root}/etc/", $NutDef); 
+	$NutDef  = searchPath("${SeqDir}:${SeqDir}/../:${SeqDir}/../etc/:./:${V6Root}/etc/", $NutDef);
 	$PktDef = $opt_pkt   ? $opt_pkt : "${SeqDir}packet.def";
 	$TestTitle= $opt_ti   ? $opt_ti : "${SeqName}";
 	$LogFile= $opt_log   ? $opt_log : "${SeqDir}${SeqName}.log";

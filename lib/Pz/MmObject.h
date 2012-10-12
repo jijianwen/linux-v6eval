@@ -157,6 +157,24 @@ virtual RObject* reverse(RControl&,RObject* r_parent,ItPosition&,OCTBUF&) const;
 };
 
 //======================================================================
+// DECORATOR MULTIPLE MEMBERS
+class MmMultipleTwo:public MmDecorator { //more than 0
+private:
+	MmObject* body2_;
+	METH_HC_MLC	METH_HC_MLC_;
+protected:
+	MmObject* body2()const{return body2_;}
+public:
+	MmMultipleTwo(MmObject*,MmObject*,METH_HC_MLC meth);
+virtual	~MmMultipleTwo();
+// COMPOSE/REVERSE INTERFACE --------------------------------------------------
+virtual	MObject* findMember(CSTR) const;
+virtual	void composeList(WControl&,
+		WObject* w_parent,const PObjectList& pls) const;
+virtual RObject* reverse(RControl&,RObject* r_parent,ItPosition&,OCTBUF&) const;
+};
+
+//======================================================================
 // ELEMENT MEMBERS
 class MmElement:public MmObject {
 private:
@@ -229,12 +247,12 @@ public:
 		const ICVoverwriter* ow=0,METH_HC_ForIPinfo meth=0);
 virtual	~MmUint();
 //----------------------------------------------------------------------
-virtual	void encode(uint32_t,const ItPosition&,OCTBUF&) const;
+virtual	void encode(uint64_t,const ItPosition&,OCTBUF&) const;
 virtual	bool encodeNumber(WControl&,const ItPosition&,OCTBUF&,const PvNumber&) const;
 //----------------------------------------------------------------------
-virtual	uint32_t rdecode(ItPosition&,const OCTBUF&,bool&) const;
-virtual	uint32_t decode(const ItPosition&,const OCTBUF&) const;
-virtual	uint32_t value(const ItPosition&,const OCTBUF&) const;
+virtual	uint64_t rdecode(ItPosition&,const OCTBUF&,bool&) const;
+virtual	uint64_t decode(const ItPosition&,const OCTBUF&) const;
+virtual	uint64_t value(const ItPosition&,const OCTBUF&) const;
 //----------------------------------------------------------------------
 inline	uint16_t width() const;
 virtual	uint16_t position() const;
@@ -254,8 +272,8 @@ public:
 	MmHostUint(CSTR,uint16_t,const PObject* =0,const PObject* =0,
 		const ICVoverwriter* ow=0,METH_HC_ForIPinfo meth=0);
 virtual	~MmHostUint();
-virtual	void encode(uint32_t,const ItPosition&,OCTBUF&) const;
-virtual	uint32_t decode(const ItPosition&,const OCTBUF&) const;
+virtual	void encode(uint64_t,const ItPosition&,OCTBUF&) const;
+virtual	uint64_t decode(const ItPosition&,const OCTBUF&) const;
 };
 
 //======================================================================
@@ -333,14 +351,16 @@ virtual PvObject* reversePv(RControl&,
 
 class ICVoverwriter {
 public:
-	ICVoverwriter(){}
+	ICVoverwriter(){};
+virtual ~ICVoverwriter(){};
 virtual	bool overwrite(ICVControl&,
 		const ItPosition& at,OCTBUF& buf,const TObject* t)const;
 };
 
 class ICV_Zero : public ICVoverwriter{
 public:
-	ICV_Zero():ICVoverwriter(){}
+	ICV_Zero():ICVoverwriter(){};
+virtual ~ICV_Zero(){};
 virtual	bool overwrite(ICVControl&,
 		const ItPosition& at,OCTBUF& buf,const TObject* t)const;
 };
@@ -350,6 +370,7 @@ class ICV_HC : public ICVoverwriter{
 public:
 	ICV_HC(const McObject* m,METH_HC_OWICV hc):ICVoverwriter(),
 		meta_(m),METH_HC_OWICV_(hc){}
+virtual ~ICV_HC(){};
 virtual	bool overwrite(ICVControl&,
 		const ItPosition& at,OCTBUF& buf,const TObject* t)const;
 };

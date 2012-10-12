@@ -49,7 +49,11 @@
 #include "MmObject.h"
 
 #include <sys/time.h>	//for bpf.h
+#if defined(__linux__)
+#include "../pkt/bpf.h"
+#else
 #include <net/bpf.h>
+#endif
 #include <sys/socket.h>
 
 class PControl;
@@ -59,8 +63,8 @@ class WObject;
 //define dictType macro	
 
 //DataLinkLayer Type				(from net/bpf.h)
-const int32_t TP_DL_Null			=DLT_NULL;
-const int32_t TP_DL_Ether			=DLT_EN10MB;
+const int32_t TP_DL_Null			=0;
+const int32_t TP_DL_Ether			=1;
 
 //NetworkLayer Protocol Family			(from sys/socket.h)
 const int32_t PF_NL_IPv6			=PF_INET6;

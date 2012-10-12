@@ -236,7 +236,7 @@ sub parseIndex(){
 		$current{SeqName}=$SeqName;
 		$current{SeqDir}=$SeqDir;
 		$current{doc}=$doc;
-		$current{links}=$links ? $links : 1;
+		$current{links}=$links ? $links : 2;
 		$testnum++;
 		$total ++;
 	}
@@ -340,7 +340,6 @@ ECHO
 <TR><TD>Start:</TD><TD>$StartTime</TD></TR>
 <TR><TD>End :</TD><TD>$EndTime</TD></TR>
 </TABLE>
-<HR>
 ECHO
 	}		# if($opt_profile)
 	}
@@ -457,6 +456,7 @@ ECHO
 			undef $dumplinktxt;
 			if($mklink) {
 			    for($i=0;$i<$current{links};$i++) {
+				next if ($i != 0 && !(-e "$current{log}.Link$i.dump"));
 				$dumplink    .= "<A HREF=\"$current{log}.Link$i.dump\">Link$i</A> ";
 				$dumplinktxt .= "<A HREF=\"$current{log}.Link$i.dump.txt\">Link$i</A> ";
 			    }
@@ -668,6 +668,8 @@ sub getStatus($) { my (
 		$result{9} ="<FONT COLOR=\"#00FF00\">Except Special</FONT>";
 		$result{10}="<FONT COLOR=\"#AAAAAA\">SKIP</FONT>";
 		$result{11}="<FONT COLOR=\"#00FF00\">Type Mismatch</FONT>";
+		$result{14} ="<FONT COLOR=\"#00FF00\">IPv4 Only<FONT>";
+		$result{15} ="<FONT COLOR=\"#00FF00\">IPv6 Only</FONT>";
 		$result{32}="<FONT COLOR=\"#FF0000\">FAIL</FONT>";
 		$result{33}="<FONT COLOR=\"#FF0000\">Initialization Fail</FONT>";
 		$result{34}="<FONT COLOR=\"#FF0000\">Cleanup Fail</FONT>";

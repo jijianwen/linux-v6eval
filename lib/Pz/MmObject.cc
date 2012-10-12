@@ -267,6 +267,42 @@ RObject* MmMultiple::reverse(RControl& c,
 		r = mbody->reverse(c,r_parent,at,buf);}//forward
 	return r;}
 
+//======================================================================
+//more than 0
+MmMultipleTwo::MmMultipleTwo(MmObject* e,MmObject* e2,METH_HC_MLC meth):MmDecorator(e),body2_(e2),
+	METH_HC_MLC_(meth) {}
+MmMultipleTwo::~MmMultipleTwo() {}
+
+MObject* MmMultipleTwo::findMember(CSTR str) const{
+	if (body2_ && body2_->findMember(str)) {
+		return body2_->findMember(str);
+	} else {
+		return MmDecorator::findMember(str);
+	}
+}
+
+// COMPOSE
+void MmMultipleTwo::composeList(WControl& c,
+		WObject* w_parent,const PObjectList& pls)const{
+	c.dict_set(0);	//clear composeable Mc type dict
+	MmObject* mbody = body();
+	MmObject* mbody2 = body2();
+	pls.elementsPerformWith(
+		(PObjectFunc)&PObject::vmatchselfComposeTwo,&c,w_parent,mbody,mbody2);
+	}
+
+// REVERSE
+RObject* MmMultipleTwo::reverse(RControl& c,
+		RObject* r_parent,ItPosition& at,OCTBUF& buf) const {
+	RObject* r=0;
+	MmObject* mbody = body();
+	MmObject* mbody2 = body2();
+	uint32_t cou = (compound()->*METH_HC_MLC_)(ItPosition(),buf);
+	for(uint32_t i=0;i<cou;i++){
+		r = mbody->reverse(c,r_parent,at,buf);
+		r = mbody2->reverse(c,r_parent,at,buf);
+	}//forward
+	return r;}
 
 //======================================================================
 #define SUPER	MmObject
@@ -377,38 +413,52 @@ MmHostUint::~MmHostUint() {}
 
 
 //----------------------------------------------------------------------
-void MmUint::encode(uint32_t h,const ItPosition& at,OCTBUF& dst) const {
+void MmUint::encode(uint64_t h,const ItPosition& at,OCTBUF& dst) const {
 	uint16_t w=width();
-	if(w>32) {abort();}
-	dst.encodeUint(h,at,w);}
+	uint32_t *v = (uint32_t *)&h;
+	ItPosition tmp = at;
+	if(w>64) {abort();}
+	else if(w > 32) {dst.encodeUint(*(v + 1), tmp, w - 32);tmp.addBits(w - 32);}
+	dst.encodeUint(*v, tmp, w > 32 ? 32 : w);}
 
-void MmHostUint::encode(uint32_t h,const ItPosition& at,OCTBUF& dst) const {
+void MmHostUint::encode(uint64_t h,const ItPosition& at,OCTBUF& dst) const {
 	uint16_t w=width();
-	if(w>32) {abort();}
-	dst.encodeNUint(h,at,w);}
+	uint32_t *v = (uint32_t *)&h;
+	ItPosition tmp = at;
+	if(w>64) {abort();}
+	else if(w > 32) {dst.encodeUint(*(v + 1), tmp, w - 32);tmp.addBits(w - 32);}
+	dst.encodeUint(*v, tmp, w > 32 ? 32 : w);}
 
 bool MmUint::encodeNumber(WControl&,const ItPosition& at,OCTBUF& dst,const PvNumber& n) const {
 	encode(n.value(),at,dst);
 	return true;}
 
 //----------------------------------------------------------------------
-uint32_t MmUint::rdecode(ItPosition& at,const OCTBUF& src,bool& ok) const {
+uint64_t MmUint::rdecode(ItPosition& at,const OCTBUF& src,bool& ok) const {
 	ItPosition ml(objectLength(),width());
 	if(at<ml) {ok=false; return 0;}
 	ok=true;
 	at-=ml;
 	return decode(at,src);}
-uint32_t MmUint::decode(const ItPosition& at,const OCTBUF& src) const {
+uint64_t MmUint::decode(const ItPosition& at,const OCTBUF& src) const {
 	uint16_t w=width();
-	if(w>32) {abort();}
-	return src.decodeUint(at,w);}
+	uint64_t ret = 0;
+	ItPosition tmp = at;
+	if(w>64) {abort();}
+	else if(w > 32) {ret = (uint64_t)src.decodeUint(tmp, w - 32);tmp.addBits(w - 32);}
+	ret = (ret << 32) + src.decodeUint(tmp, w > 32 ? 32 : w);
+	return ret;}
 
-uint32_t MmHostUint::decode(const ItPosition& at,const OCTBUF& src) const {
+uint64_t MmHostUint::decode(const ItPosition& at,const OCTBUF& src) const {
 	uint16_t w=width();
-	if(w>32) {abort();}
-	return src.decodeNUint(at,w);}
+	uint64_t ret = 0;
+	ItPosition tmp = at;
+	if(w>64) {abort();}
+	else if(w > 32) {ret = (uint64_t)src.decodeUint(tmp, w - 32);tmp.addBits(w - 32);}
+	ret = (ret << 32) + src.decodeUint(tmp, w > 32 ? 32 : w);
+	return ret;}
 
-uint32_t MmUint::value(const ItPosition& on,const OCTBUF& src) const {
+uint64_t MmUint::value(const ItPosition& on,const OCTBUF& src) const {
 	ItPosition at(on);
 	ItPosition delta(offset(),position());
 	at+=delta;
@@ -417,7 +467,7 @@ uint32_t MmUint::value(const ItPosition& on,const OCTBUF& src) const {
 // REVERSE
 PvObject* MmUint::reversePv(RControl&,
 		const ItPosition& at,const ItPosition&,const OCTBUF& buf)const{
-	uint32_t val = decode(at,buf);
+	uint64_t val = decode(at,buf);
 	return new PvNumber(val);}
 
 //======================================================================

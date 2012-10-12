@@ -88,7 +88,7 @@ int32_t LxLexer::lex(PObject* compound) {
 		yylval=name;
 		return NAME;}
 	else if(isdigit(c)) {				/* NUMBER	*/
-		int32_t n=digitLex(s);
+		int64_t n=digitLex(s);
 		yylval=PvNumber::unique(n);
 		return NUMBER;}
 	else if(c=='"'||c=='\''){			/* QUOTE	*/
@@ -191,6 +191,13 @@ void LxLexer::initialize() {
 	delimiter("&",AND);
 	delimiter("|",OR);
 	delimiter("^",XOR);
+	delimiter("+",ADD);
+	delimiter("-",SUB);
+	delimiter("*",MUL);
+	delimiter("/",DIV);
+	delimiter("?",QUEST);
+	delimiter(":",COLON);
+	delimiter("!",NOT);
 	//--------------------------------------------------------------
 	// INSIDE FUNCTION
 //	function(new MvFunction("sizeof"));
@@ -315,9 +322,15 @@ void LxLexer::initialize() {
 	function(new MfHMACSHA1("hmacsha1",12,4));
 	function(new MfHMACSHA1_2("hmacsha1_2", 12, 4));	// binary args
 #if defined(OPENSSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
+#if ! defined(__linux__)
 	function(new MfHMACSHA2_256("hmacsha2_256", 16, 4));
 	function(new MfHMACSHA2_384("hmacsha2_384", 24, 4));
 	function(new MfHMACSHA2_512("hmacsha2_512", 32, 4));
+#else
+	function(new MfHMACSHA2_256("hmacsha2_256",12,4));
+	function(new MfHMACSHA2_384("hmacsha2_384",12,4));
+	function(new MfHMACSHA2_512("hmacsha2_512",12,4));
+#endif
 #endif	// OPENSSL_VERSION_NUMBER
 	function(new MfAES_XCBC("aesxcbc", 12, 4));
 	function(new MfAES_XCBC_2("aesxcbc_2", 12, 4));		// binary args

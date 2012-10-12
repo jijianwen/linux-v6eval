@@ -79,11 +79,12 @@ virtual bool check_nameCompose(WControl&,WObject* w_parent,const PvName&) const;
 // COMPOSE INTERFACE(for Collection elementsPerform) --------------------------
 	void vselfCompose(void* v,va_list ap) const;
 	void vmatchselfCompose(void* v,va_list ap) const;
+	void vmatchselfComposeTwo(void* v,va_list ap) const;
 //----------------------------------------------------------------------
 virtual	const MObject* meta() const;
 virtual	bool isEqualMeta(const MObject*) const;
 virtual	int32_t compareOctets(const PvOctets&) const;
-virtual	int32_t compareNumber(int32_t) const;
+virtual	int32_t compareNumber(int64_t) const;
 virtual	int32_t compareTimeval(const timeval&) const;
 virtual	int32_t compareCalc() const;
 virtual	int32_t compareObject(const PObject&) const;
@@ -99,6 +100,7 @@ virtual const PObject* rvalue() const;
 virtual const PObjectList& members()const;
 virtual const PObjectList& args()const;
 virtual	int32_t intValue(bool&) const;
+virtual int64_t int64Value(bool&) const;
 virtual	CSTR strValue(bool&) const;
 virtual	COCTSTR octetsValue(bool&) const;
 virtual	PvOctets* octetString() const;
