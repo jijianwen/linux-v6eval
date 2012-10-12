@@ -46,6 +46,7 @@
 
 SRCS= file2hex.c
 PROG = file2hex
+INSTALL = /usr/bin/install -c
 
 .PHONY: all
 all: ${PROG}
