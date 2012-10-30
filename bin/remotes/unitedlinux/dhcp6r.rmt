@@ -1,0 +1,154 @@
+#!/usr/bin/perl
+#
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Yokogawa Electric Corporation,
+# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# All rights reserved.
+# Copyright (C) IBM Corporation 2007.
+# All rights reserved.
+# 
+# Redistribution and use of this software in source and binary forms, with 
+# or without modification, are permitted provided that the following 
+# conditions and disclaimer are agreed and accepted by the user:
+# 
+# 1. Redistributions of source code must retain the above copyright 
+# notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright 
+# notice, this list of conditions and the following disclaimer in the 
+# documentation and/or other materials provided with the distribution.
+# 
+# 3. Neither the names of the copyrighters, the name of the project which 
+# is related to this software (hereinafter referred to as "project") nor 
+# the names of the contributors may be used to endorse or promote products 
+# derived from this software without specific prior written permission.
+# 
+# 4. No merchantable use may be permitted without prior written 
+# notification to the copyrighters. However, using this software for the 
+# purpose of testing or evaluating any products including merchantable 
+# products may be permitted without any notification to the copyrighters.
+# 
+# 
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHTERS, THE PROJECT AND 
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING 
+# BUT NOT LIMITED THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+# FOR A PARTICULAR PURPOSE, ARE DISCLAIMED.  IN NO EVENT SHALL THE 
+# COPYRIGHTERS, THE PROJECT OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+# CONTRACT,STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+# THE POSSIBILITY OF SUCH DAMAGE.
+#
+################################################################
+use V6evalRemote;
+use lib qw(/usr/local/v6eval/bin/unitedlinux);
+use linux_common;
+
+rOpen()  || goto error;
+$system=rType();
+$rOpt_timeout=5 if ! defined($rOpt_timeout);
+$dhcp6r_cmd="dhcrelay -6 -I";
+$dhcp6r_opt="";
+
+if(defined($rOpt_start)){
+	if (!defined($rOpt_link0) || !defined($rOpt_link1)){
+		print STDERR "NG:The interfaces used by DHCPv6 relay-agent";
+		print STDERR "have not been defined in the configuration file ";
+		print STDERR "Please define them!";
+		goto error;
+	}
+
+	# Enable the Relay agent to forward messges to the multicast address
+	# FF05::1:3
+	if(defined($rOpt_servermulticast)){
+		$dhcp6r_opt .= " -u $rOpt_link0";
+	}
+
+	# Enable the Relay agent to receive Client's message on the multicast
+	# address FF02::1:2
+	if(defined($rOpt_clientmulticast)){
+		$dhcp6r_opt .= " -l $rOpt_link1";
+	}
+
+	# Set the Relay agent to send Relay message to the special unicast
+	# address
+	if(defined($rOpt_serverunicast)){
+		$dhcp6r_opt .= " -u $rOpt_link0+$rOpt_serverunicast";
+	}
+
+	# Set the Relay agent to receive Client's message on the special
+	# unicast address
+	if(defined($rOpt_clientunicast)){
+		$dhcp6r_opt .= " -l $rOpt_link1";
+	}
+	
+	# Set the Relay agent to add Interface-id option in the Relay
+	# message with the interface-id
+	#if(defined($rOpt_interfaceid)){
+	#	< Interface-id is always attached >
+	#}
+
+	# Start the DHCPv6 relay-agent
+	rLogin($rOpt_timeout) || goto error;
+	rCommand("$dhcp6r_cmd $dhcp6r_opt", $timeout) || goto error;
+	linux_rLogout($rOpt_timeout) || goto error;
+	rClose();
+	exit($V6evalRemote::exitPass);
+
+error:
+	rClose();
+	exit($V6evalRemote::exitFail);
+}
+elsif (defined($rOpt_restart)){
+	print "restrart option is not supported";
+	exit($V6evalRemote::exitNS);
+}
+elsif(defined($rOpt_stop)){
+	rLogin($rOpt_timeout) || goto error;
+	rCommand("killall $dhcp6r_cmd", $timeout) || goto error;
+	linux_rLogout($rOpt_timeout) || goto error;
+	rClose();
+	exit($V6evalRemote::exitPass);
+
+error:
+	rClose();
+	exit($V6evalRemote::exitNS);
+}
+
+error:
+	print "Do nothing";
+	rClose();
+	exit($V6evalRemote::exitFail);
+################################################################
+__END__
+
+=head1 NAME
+
+B<XXX.rmt> - XXX
+
+=head1 SYNOPSIS
+
+B<XXX.rmt> [-commonoption ...] [XXX=XXX] [XXX="XXX"]
+
+=head1 DESCRIPTION
+
+B<XXX.rmt> XXX
+Default timeout value is five seconds.
+Do ``perldoc V6evalRemote'' for common options.
+
+B<ifs> option works only if B<target type> is "nec-libra".
+
+=head1 RETURN VALUES
+
+The B<cleardefr.rmt> exits with one of the following values:
+ 0  command completed successfully
+ 1  command failed
+
+=head1 SEE ALSO
+
+perldoc V6evalRemote
+
+=cut

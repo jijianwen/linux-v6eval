@@ -1,6 +1,6 @@
+#!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Yokogawa Electric Corporation,
 # YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
@@ -40,27 +40,62 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/Makefile,v 1.43 2005/05/25 02:08:48 akisada Exp $
+# $TAHI: v6eval/bin/remotes/kame-freebsd/ipsecResetSPD.rmt,v 1.2 2005/05/09 09:35:22 akisada Exp $
 #
+########################################################################
+use V6evalRemote;
 
-SUBDIRS=unknown	\
-	manual \
-	unitedlinux
+rOpen() || goto error;
 
-PREFIX=/usr/local/v6eval
-DOCFILES=00README
+$rOpt_timeout=10 if ! defined($rOpt_timeout);
 
-.PHONY: all clean install
-all clean:
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+$cmd = "ip xfrm policy deleteall";
 
-.PHONY: install
-install:
-	install -d -o bin -g bin -m 755 $(PREFIX)/bin
-	install -c -o bin -g bin -m 444 $(DOCFILES) $(PREFIX)/bin/
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+#$prefix = "/usr";
+#$setkey = "/sbin/setkey";
 
+#$setkey_cmd  = "$setkey -c \<\<EOD\r";
+#if (defined($rOpt_spddump)) {
+#	$setkey_cmd .= "spddump;\r";
+#}
+#$setkey_cmd .= "spdflush;\r";
+#$setkey_cmd .= "EOD\r";
+
+rLogin($rOpt_timeout) || goto error;
+#print STDOUT "$setkey_cmd\n" if $V6evalRemote::debug;
+rCommand($cmd , $rOpt_timeout) || goto error;
+rLogout($rOpt_timeout) || goto error;
+
+rClose();
+exit($V6evalRemote::exitPass);
+
+error:
+    rClose();
+    exit($V6evalRemote::exitFail);
+
+########################################################################
+__END__
+
+=head1 NAME
+
+B<ipsecResetSPD.rmt> - reset SPD entry
+
+=head1 SYNOPSIS
+
+B<ipsecResetSPD.rmt> [-commonoption ...]
+
+=head1 DESCRIPTION
+
+NONE
+
+=head1 RETURN VALUES
+
+The B<ipsecResetSPD.rmt> exits with one of the following values:
+ 0  command completed successfully
+ 1  command failed
+
+=head1 SEE ALSO
+
+perldoc V6evalRemote
+
+=cut

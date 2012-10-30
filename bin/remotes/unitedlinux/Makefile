@@ -1,7 +1,7 @@
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, 2001, 2002, 2003 Yokogawa Electric Corporation,
+# YDC Corporation, IPA (Information-technology Promotion Agency, Japan),
+# Copyright (C) IBM Corporation 2003.
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -40,27 +40,28 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/Makefile,v 1.43 2005/05/25 02:08:48 akisada Exp $
+#    Author: Kazuo Hiekata <hiekata@yamato.ibm.com>
 #
-
-SUBDIRS=unknown	\
-	manual \
-	unitedlinux
+########################################################################
 
 PREFIX=/usr/local/v6eval
-DOCFILES=00README
+RMTDIR=$(PREFIX)/bin/unitedlinux
+REMOTES=cleardefr.rmt clearnc.rmt clearprefix.rmt clearroute.rmt \
+		dhcp6c.rmt dhcp6r.rmt dhcp6s.rmt \
+		ikeClearAll.rmt ikeConfig.rmt ikeDump.rmt ikeEnable.rmt ikeInitiate.rmt \
+		ikeResetSA.rmt ikeSetSA.rmt ikeStart.rmt ikeStop.rmt ikeTunnel.rmt \
+		ipsecClearAll.rmt ipsecEnable.rmt ipsecResetSPD.rmt \
+		ipsecSetSAD.rmt ipsecSetSPD.rmt \
+		loginout.rmt manualaddrconf.rmt ping6.rmt \
+		racontrol.rmt reboot_async.rmt reboot.rmt route.rmt rtadvd.rmt tunnel.rmt \
 
-.PHONY: all clean install
-all clean:
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+.PHONY: all depend clean
+all:
+depend:
+clean:
 
 .PHONY: install
 install:
 	install -d -o bin -g bin -m 755 $(PREFIX)/bin
-	install -c -o bin -g bin -m 444 $(DOCFILES) $(PREFIX)/bin/
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
-
+	install -d -o bin -g bin -m 755 $(RMTDIR)
+	install -c -o bin -g bin -m 555 $(REMOTES) $(RMTDIR)

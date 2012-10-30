@@ -1,6 +1,6 @@
+#!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Yokogawa Electric Corporation,
 # YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
@@ -40,27 +40,56 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/Makefile,v 1.43 2005/05/25 02:08:48 akisada Exp $
+# $TAHI: v6eval/bin/remotes/linux-v6/tunnel.rmt,v 1.5 2001/10/05 06:27:21 masaxmasa Exp $
 #
+########################################################################
+use V6evalRemote;
 
-SUBDIRS=unknown	\
-	manual \
-	unitedlinux
+#exit($V6evalRemote::exitNS);	# delete this line, and modify
 
-PREFIX=/usr/local/v6eval
-DOCFILES=00README
+rOpen() || goto error;
 
-.PHONY: all clean install
-all clean:
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+$rOpt_timeout=5 if ! defined $rOpt_timeout;
 
-.PHONY: install
-install:
-	install -d -o bin -g bin -m 755 $(PREFIX)/bin
-	install -c -o bin -g bin -m 444 $(DOCFILES) $(PREFIX)/bin/
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+#$rOpt_if
+#$rOpt_prefixlen
+#$rOpt_routeprefixlen
+#$rOpt_addrfamily
+#$rOpt_prefix
+#$rOpt_gateway
+#$rOpt_srcaddr
+#$rOpt_dstaddr
+#$rOpt_insrcaddr
+#$rOpt_indstaddr
 
+$NUT_TUNNEL_device = "sit".($rOpt_if + 1);
+
+rLogin($rOpt_timeout) || goto error;
+
+rCommand("ifconfig sit0 ".
+	 "up",
+	 $rOpt_timeout) || goto error;
+
+rCommand("ifconfig sit0 ".
+	 "tunnel ::$rOpt_dstaddr/96",
+	 $rOpt_timeout) || goto error;
+
+rCommand("ifconfig $NUT_TUNNEL_device ".
+	 "up",
+	 $rOpt_timeout) || goto error;
+
+rCommand("route -A inet6 add $rOpt_prefix/$rOpt_prefixlen ".
+	 "gw fe80::$rOpt_dstaddr ".
+	 "dev $NUT_TUNNEL_device",
+	 $rOpt_timeout) || goto error;
+
+rLogout($rOpt_timeout) || goto error;
+
+rClose();
+exit($V6evalRemote::exitPass);
+
+error:
+    rClose();
+    exit($V6evalRemote::exitFail);
+
+########################################################################

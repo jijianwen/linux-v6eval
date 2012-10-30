@@ -1,6 +1,6 @@
+#!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Yokogawa Electric Corporation,
 # YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
@@ -40,27 +40,39 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/Makefile,v 1.43 2005/05/25 02:08:48 akisada Exp $
+# $TAHI: v6eval/bin/remotes/linux-v6/ping6.rmt,v 1.5 2001/10/05 06:27:21 masaxmasa Exp $
 #
+########################################################################
+use V6evalRemote;
 
-SUBDIRS=unknown	\
-	manual \
-	unitedlinux
+rOpen() || goto error;
 
-PREFIX=/usr/local/v6eval
-DOCFILES=00README
+$NUTif = $rOpt_if;
+$dstaddress = $rOpt_addr;
+#$rOpt_timeout = 5 if ! defined $rOpt_timeout;
+$rOpt_timeout = 5 if ! defined ($rOpt_timeout);
+$rOpt_size = 2 if ! defined ($rOpt_size);
+$rOpt_count = 1 if ! defined ($rOpt_count) ;
+$rOpt_interval = 1 if ! defined ($rOpt_interval);
 
-.PHONY: all clean install
-all clean:
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+$pingpath = "ping6";
+#$pingopt  = "-n -c 1 -i 1 -s $rOpt_size -p 00 -w 2";
+#$pingopt  = "-n -c $rOpt_count -i $rOpt_interval -s $rOpt_size -p 00 -w 2";
 
-.PHONY: install
-install:
-	install -d -o bin -g bin -m 755 $(PREFIX)/bin
-	install -c -o bin -g bin -m 444 $(DOCFILES) $(PREFIX)/bin/
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+# RedHat need -M want
+$pingopt  = "-n -c $rOpt_count -i $rOpt_interval -s $rOpt_size -M want -p 00 -w 2";
 
+$ifopt    = "-I $NUTif" if $NUTif ne "";
+
+rLogin($rOpt_timeout) || goto error;
+rCommand("$pingpath $pingopt $ifopt $dstaddress", 15) || goto error;
+rLogout($rOpt_timeout) || goto error;
+
+rClose();
+exit($V6evalRemote::exitPass);
+
+error:
+    rClose();
+    exit($V6evalRemote::exitFail);
+
+########################################################################

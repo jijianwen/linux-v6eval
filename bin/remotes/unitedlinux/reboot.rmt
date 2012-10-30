@@ -1,6 +1,6 @@
+#!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 Yokogawa Electric Corporation,
 # YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
@@ -40,27 +40,22 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/Makefile,v 1.43 2005/05/25 02:08:48 akisada Exp $
+# $TAHI: v6eval/bin/remotes/linux-v6/reboot.rmt,v 1.5 2001/10/05 06:27:21 masaxmasa Exp $
 #
+########################################################################
+use V6evalRemote;
 
-SUBDIRS=unknown	\
-	manual \
-	unitedlinux
+rOpen() || goto error;
+$rOpt_timeout = 300 if ! defined $rOpt_timeout;
 
-PREFIX=/usr/local/v6eval
-DOCFILES=00README
+rLogin(5) || goto error;
+rReboot($rOpt_timeout) || goto error;
 
-.PHONY: all clean install
-all clean:
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+rClose();
+exit($V6evalRemote::exitPass);
 
-.PHONY: install
-install:
-	install -d -o bin -g bin -m 755 $(PREFIX)/bin
-	install -c -o bin -g bin -m 444 $(DOCFILES) $(PREFIX)/bin/
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+error:
+    rClose();
+    exit($V6evalRemote::exitFail);
 
+########################################################################

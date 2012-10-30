@@ -1,7 +1,7 @@
+#!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, and 2001 Yokogawa Electric Corporation,
+# YDC Corporation, IPA (Information-technology Promotion Agency,Japan)
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -40,27 +40,87 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/Makefile,v 1.43 2005/05/25 02:08:48 akisada Exp $
+# $TAHI: v6eval/bin/remotes/unitedlinux/manualaddrconf.rmt,v 1.1 2003/10/08 01:16:57 akisada Exp $
 #
+########################################################################
+use V6evalRemote;
 
-SUBDIRS=unknown	\
-	manual \
-	unitedlinux
+$rOpt_timeout = 5 if ! defined $rOpt_timeout;
+$rOpt_dadtime = 2 if ! defined $rOpt_dadtime;
+$rOpt_addrfamily = "inet6" if ! defined $rOpt_addrfamily;
 
-PREFIX=/usr/local/v6eval
-DOCFILES=00README
+#$rOpt_addr
+#$rOpt_if
+#$rOpt_type
+#$rOpt_len
+#$rOpt_netmask
 
-.PHONY: all clean install
-all clean:
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+rOpen() || goto error;
+rLogin($rOpt_timeout) || goto error;
 
-.PHONY: install
-install:
-	install -d -o bin -g bin -m 755 $(PREFIX)/bin
-	install -c -o bin -g bin -m 444 $(DOCFILES) $(PREFIX)/bin/
-	@for subdir in $(SUBDIRS); do \
-		$(MAKE) -C $$subdir $@; \
-	done
+if ($rOpt_addrfamily eq "inet6") {
+    if ($rOpt_type eq "unicast") {
+	rCommand("ifconfig $rOpt_if ".
+		 "$rOpt_addrfamily ".
+		 "add ".
+		 "$rOpt_addr/$rOpt_len",
+		 15) || goto error;
+    }
+    elsif ($rOpt_type eq "anycast") {
+#	print "$rOpt_type: not supported type\n";
+#	goto notsupported;
+	rCommand("echo dummy", 15) || goto error;
+    }
+    elsif ($rOpt_type eq "delete") {
+
+print "akisada2: ===> $rOpt_subnet_router_anycast\n";
+
+if($rOpt_subnet_router_anycast ne "true") {
+	rCommand("ifconfig $rOpt_if ".
+		 "del ".
+		 "$rOpt_addr/$rOpt_len",
+		 15) || goto error;
+}
+    }
+    else {
+	print "$rOpt_type: Unknown type\n";
+	goto error;
+    }
+}
+elsif ($rOpt_addrfamily eq "inet") {
+    if ($rOpt_type eq "add") {
+	rCommand("ifconfig $rOpt_if ".
+		 "$rOpt_addrfamily ".
+		 "$rOpt_addr",
+		 15) || goto error;
+    }
+    elsif ($rOpt_type eq "delete") {
+	# do nothing
+    }
+    else {
+	print "$rOpt_type: Unknown type\n";
+	goto error;
+    }
+}
+else {
+    print "$rOpt_addrfamily: Unknown address family\n";
+    goto error;
+}
+
+rLogout($rOpt_timeout) || goto error;
+
+sleep($rOpt_dadtime);
+rClose();
+exit($V6evalRemote::exitPass);
+
+error:
+    rClose();
+    exit($V6evalRemote::exitFail);
+
+notsupported:
+    rClose();
+    exit($V6evalRemote::exitNS);
+
+########################################################################
+
 

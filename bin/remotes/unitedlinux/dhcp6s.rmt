@@ -1,0 +1,364 @@
+#!/usr/bin/perl
+#
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Yokogawa Electric Corporation,
+# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) IBM Corporation 2007.
+# All rights reserved.
+#
+# Redistribution and use of this software in source and binary forms, with
+# or without modification, are permitted provided that the following
+# conditions and disclaimer are agreed and accepted by the user:
+#
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the names of the copyrighters, the name of the project which
+# is related to this software (hereinafter referred to as "project") nor
+# the names of the contributors may be used to endorse or promote products
+# derived from this software without specific prior written permission.
+#
+# 4. No merchantable use may be permitted without prior written
+# notification to the copyrighters. However, using this software for the
+# purpose of testing or evaluating any products including merchantable
+# products may be permitted without any notification to the copyrighters.
+#
+#
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHTERS, THE PROJECT AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING
+# BUT NOT LIMITED THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE, ARE DISCLAIMED.  IN NO EVENT SHALL THE
+# COPYRIGHTERS, THE PROJECT OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT,STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+# THE POSSIBILITY OF SUCH DAMAGE.
+#
+# $TAHI: dhcpv6.p2/remote/manual/dhcp6s.rmt,v 1.3 2007/02/08 06:56:48 hide Exp $
+#
+########################################################################
+use V6evalRemote;
+use lib qw(/usr/local/v6eval/bin/unitedlinux);
+use linux_common;
+
+rOpen() || goto error;
+$system            = rType();
+$rOpt_timeout      = 20 if !defined($rOpt_timeout);
+$dhcp6s_cmd        = "dhcpd -6";
+$dhcp6s_rmt        = "/root/dhcp6s.conf";
+$dhcp6s_linkprefix = "3ffe:501:ffff:100";
+
+# Check arguments
+if ( defined($rOpt_start) && !defined($rOpt_link0) ) {
+    print STDERR "Specify link0=XXX\n";
+    goto error;
+}
+
+# client's DUID
+if ( defined($rOpt_valduid) ) {
+    $def_valduid = "host-identifier option dhcp6.client-id $rOpt_valduid;";
+}
+else {
+    $def_valduid = "\#";
+}
+$def_relay = "";
+
+# assigned addresses
+if ( defined($rOpt_startaddr) && ( defined($rOpt_endaddr) ) ) {
+    if ( $rOpt_startaddr =~ /^$dhcp6s_linkprefix/ ) {
+        $def_relayprefix = "\#";
+    }
+    else {
+        if ( $rOpt_startaddr =~ /(\w+):(\w+):(\w+):(\w+)/ ) {
+            $def_relayprefix = "relay $1:$2:$3:$4::/64;";
+        }
+        else {
+            $def_relayprefix = "\#";
+        }
+    }
+    $def_addresses = "range6 $rOpt_startaddr $rOpt_endaddr;";
+
+#        $dhcp6s_linkprefix="3ffe:501:ffff:100" if( $rOpt_startaddr =~ /3ffe\:501\:ffff\:100/);
+    if (   $rOpt_startaddr !~ /3ffe\:501\:ffff\:100/
+        && $rOpt_endaddr !~ /3ffe\:501\:ffff\:100/ )
+    {
+        $rOpt_startaddr =~ /(3ffe\:501\:ffff\:[0-9]*)\:\:[0-9]*/;
+        my $prefix = $1;
+        $def_addresses = "";
+        $def_relay     = <<END;
+subnet6 $prefix\:\:0\/64 {
+    range6 $rOpt_startaddr $rOpt_endaddr;
+}
+END
+    }
+    $def_delegateprefix = "\#";
+
+    #this is not necessary it should already defined in lease file
+    $def_preferredlifetime = "preferred-lifetime 10000;";
+
+    #no longer useable
+    #$def_validlifetime = "valid-life-time  20000;";
+    $def_renewtime  = "option dhcp-renewal-time 5000;";
+    $def_rebindtime = "option dhcp-rebinding-time 16000;";
+}
+else {
+    $def_relayprefix       = "\#";
+    $def_addresses         = "\#;";
+    $def_delegateprefix    = "\#";
+    $def_preferredlifetime = "\#;";
+    $def_validlifetime     = "\#;";
+    $def_renewtime         = "\#;";
+    $def_rebindtime        = "\#;";
+}
+
+# DNS Server option
+if ( defined($rOpt_dns) ) {
+    $def_dns = "option\ dhcp6.name-servers\ $rOpt_dns;";
+}
+else {
+    $def_dns = "";
+}
+
+if ( defined($rOpt_domainlist) ) {
+    if ( $def_dns eq "" ) {
+        $def_dns = "option\ dhcp6.domain-search\ \\\"$rOpt_domainlist\\\";";
+    }
+    else {
+        $def_dns .= "\n option\ dhcp6.domain-search\ \\\"$rOpt_domainlist\\\";";
+    }
+}
+
+$def_dns = "\#" if ( $def_dns eq "" );
+
+# DUID type
+if ( defined $rOpt_duid ) {
+    if ( $rOpt_duid != DUID_LLT ) {
+        print STDERR "dhcp6s only supports DUID_LLT\n";
+        goto notsupported;
+    }
+}
+
+# enable the Reconfigure
+if ( defined $rOpt_reconf ) {
+    goto notsupported;
+}
+
+# Preference options
+if ( defined($rOpt_preference) ) {
+    if ( $rOpt_preference eq default ) {
+        $def_preference = "server-preference\ 0;";
+    }
+    else {
+        $def_preference = "server-preference\ $rOpt_preference;";
+    }
+}
+else {
+    $def_preference = "\#";
+}
+
+# Rapid Commit option
+if ( defined($rOpt_rapidcommit) ) {
+    $def_rapidcommit = "allow\ rapid-commit;";
+}
+else {
+    $def_rapidcommit = "\#";
+}
+
+# Other allow options
+if ( defined($rOpt_allowoptions) ) {
+    $def_allowoptions = "allow\ $rOpt_allowoptions;";
+}
+else {
+    $def_allowoptions = "\#";
+}
+
+# options only permit
+if ( defined $rOpt_onlypermit ) {
+    goto notsupported;
+}
+
+# send options
+if ( defined($rOpt_sendoptions) ) {
+    $def_sendoptions = "send\ $rOpt_sendoptions;";
+}
+else {
+    $def_sendoptions = "\#";
+}
+
+# Authentication protocol
+if ( defined $rOpt_authentication ) {
+    goto notsupported;
+}
+if ( defined $rOpt_auth_realm ) {
+    goto notsupported;
+}
+if ( defined $rOpt_auth_keid ) {
+    goto notsupported;
+}
+if ( defined $rOpt_auth_auth_sharedsecretkey ) {
+    goto notsupported;
+}
+
+# Delegate prefix
+if ( defined($rOpt_delegateprefix) ) {
+    if ( defined($def_addresses) ) {
+        print STDERR "Could not set both address range and delegation\n";
+        goto error;
+    }
+    if ( $rOpt_delegateprefix eq notset ) {
+        $def_delegateprefix = "\#";
+    }
+    else {
+        if ( defined($def_length) ) {
+            $def_delegateprefix = "prefix\ $rOpt_delegateprefix/$rOpt_length;";
+        }
+        else {
+            $def_delegateprefix = "prefix\ $rOpt_delegateprefix/48;";
+        }
+    }
+    if ( defined($rOpt_T1iapd) ) {
+        $def_renewtime = "renew-time $rOpt_T1iapd;";
+    }
+    else {
+        $def_renewtime = "\#";
+    }
+
+    if ( defined($rOpt_T2iapd) ) {
+        $def_rebindtime = "rebind-time $rOpt_T2iapd;";
+    }
+    else {
+        $def_rebindtime = "\#";
+    }
+}
+
+# Excecute each process
+rLogin($rOpt_timeout)        || goto error;
+linux_dhcp6s()               || goto error;
+linux_rLogout($rOpt_timeout) || goto error;
+
+rClose();
+exit($V6evalRemote::exitPass);
+
+error:
+rClose();
+exit($V6evalRemote::exitFail);
+
+notsupported:
+rClose();
+exit($V6evalRemote::exitNS);
+
+########################################################################
+sub linux_dhcp6s() {
+    if ($rOpt_start) {
+        linux_kill_dhcp6s()  || goto error;
+        linux_mkconf()       || goto error;
+        linux_start_dhcp6s() || goto error;
+    }
+    elsif ($rOpt_stop) {
+        linux_kill_dhcp6s() || goto error;
+    }
+    elsif ($rOpt_restart) {
+        linux_kill_dhcp6s()  || goto error;
+        linux_start_dhcp6s() || goto error;
+    }
+    else {
+        print "Nothing happed. Please specify start/stop.\n";
+    }
+    return (1);
+
+  error:
+    return (0);
+}
+
+#
+sub linux_mkconf() {
+    rCommand( "rm -f $dhcp6s_rmt", $timeout ) || goto error;
+    rCommand( "echo \"$def_preferredlifetime\"  >  $dhcp6s_rmt", 15 )
+      || goto error;
+
+#	rCommand("echo \"$def_validlifetime\"      >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_renewtime\"          >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_rebindtime\"         >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_dns\"                >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"interface $rOpt_link0 {\" >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"link AAA {\"              >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_allowoptions\"       >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_rapidcommit\"        >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_sendoptions\"        >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_preference\"         >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_relayprefix\"          >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_addresses\"          >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"$def_delegateprefix\"     >> $dhcp6s_rmt", 15) || goto error;
+#	rCommand("echo \"};\"                      >> $dhcp6s_rmt", 15) || goto error;
+    if ( defined($rOpt_stateless) ) {
+        rCommand(
+"echo \"subnet6  3ffe\:501\:ffff\:101\:\:0/64 {\n}\" >> $dhcp6s_rmt",
+            15
+        ) || goto error;
+        rCommand(
+"echo \"subnet6  3ffe\:501\:ffff\:102\:\:0/64 {\n}\" >> $dhcp6s_rmt",
+            15
+        ) || goto error;
+    }
+    rCommand( "echo \"subnet6  $dhcp6s_linkprefix\:\:0/64 {\" >> $dhcp6s_rmt",
+        15 )
+      || goto error;
+    rCommand( "echo \"$def_dns\"                >> $dhcp6s_rmt", 15 )
+      || goto error;
+    rCommand( "echo \"$def_addresses\"     >> $dhcp6s_rmt", 15 ) || goto error;
+    rCommand( "echo \"}\"                       >> $dhcp6s_rmt", 15 )
+      || goto error;
+    rCommand( "echo \"$def_relay\"       >> $dhcp6s_rmt", 15 ) || goto error;
+    if ( defined($rOpt_valduid) ) {
+        rCommand( "echo \"host host0 {\"     >> $dhcp6s_rmt", 15 )
+          || goto error;
+        rCommand( "echo \"$def_valduid\"     >> $dhcp6s_rmt", 15 )
+          || goto error;
+        rCommand( "echo \"}\"               >> $dhcp6s_rmt", 15 ) || goto error;
+    }
+    return (1);
+
+  error:
+    return (0);
+}
+
+#
+sub linux_start_dhcp6s() {
+    rCommand( "mkdir -p /var/lib/dhcpd/", $timeout ) || goto error;
+
+    #make sure lease file existed
+    rCommand( "touch /var/lib/dhcpd/dhcpd6.leases", $timeout ) || goto error;
+    rCommand( "cat $dhcp6s_rmt",                    $timeout ) || goto error;
+    rCommand( "$dhcp6s_cmd -cf $dhcp6s_rmt $rOpt_link0", $timeout )
+      || goto error;
+    return (1);
+  error:
+    return (0);
+}
+
+#
+sub linux_clear_duid() {
+    rCommand( "rm -f /var/lib/dhcpd/*", $timeout ) || goto error;
+    return (1);
+  error:
+    return (0);
+}
+
+#
+sub linux_kill_dhcp6s() {
+    $ret = rCommand( "killall dhcpd", $timeout );
+    if ( $ret == 1 ) {
+        linux_clear_duid() || goto error;
+    }
+    return (1);
+
+  error:
+    return (0);
+}
