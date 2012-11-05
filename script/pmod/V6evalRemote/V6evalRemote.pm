@@ -211,7 +211,7 @@ sub rLogin($)
             qr/password:/i,
             sub {
                 my $self = shift;
-                $self->send("$pass\n");
+                $self->send("$Password\n");
                 exp_continue;
             }
         ],
@@ -327,7 +327,7 @@ sub rReboot($)
         if ( system("ping $Host -c 4 > /dev/null") == 0 ) {
             print "rReboot: ping pass, start ssh\n" if (defined $debug);
             # sleep $t sec to wait remote start sshd server.
-            sleep $t
+            sleep $t;
             $Remote = Expect->spawn("ssh -l root $Host") or print "rReboot: ".
             "ssh fail\n" and exit 0;
             last;
