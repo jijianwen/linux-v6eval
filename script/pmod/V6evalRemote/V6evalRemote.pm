@@ -49,12 +49,6 @@ $Expect::Log_Stdout = 1;
     rEnableLogout
     );
 
-#$host = ARGV[0];
-#$pass = ARGV[1];
-#$host = "dell-per415-02.rhts.eng.nay.redhat.com";
-#$host = "10.66.86.161";
-#$pass = "redhat";
-
 ########################################################################
 
 # The following status values must be same as V6evalTool.pm's ones.
@@ -354,7 +348,7 @@ sub rReboot($)
             qr/password:/i,
             sub {
                 my $self = shift;
-                $self->send("$pass\n");
+                $self->send("$Password\n");
                 exp_continue;
             }
         ],
