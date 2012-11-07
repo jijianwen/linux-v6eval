@@ -37,13 +37,13 @@ $Expect::Log_Stdout = 1;
 # rSendSpeed :
 
 @EXPORT = qw(
-	rOpen
-	rLogin
-	rCommand
-	rReboot
+    rOpen
+    rLogin
+    rCommand
+    rReboot
     rRebootAsync
-	rLogout
-	rClose
+    rLogout
+    rClose
     rType
     rCmdOutput
     rEnableLogout
@@ -193,7 +193,8 @@ sub rLogin($)
     }
 
     # $Remote->expect( $timeout, @match_patterns );
-    $Remote->expect($timeout, [
+    # OK, we extend the timeout time to 10s incased of slow response
+    $Remote->expect(10, [
             'connecting (yes/no)?',
             sub {
                 my $self = shift;
@@ -336,7 +337,8 @@ sub rReboot($)
     }
 
     # exp->expect( $timeout, @match_patterns );
-    $Remote->expect(5, [
+    # OK, we extend the timeout time to 10s incased of slow response
+    $Remote->expect(10, [
             'connecting (yes/no)?',
             sub {
                 my $self = shift;
