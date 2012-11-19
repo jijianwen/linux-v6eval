@@ -194,7 +194,7 @@ sub rLogin($)
 
     # $Remote->expect( $timeout, @match_patterns );
     # OK, we extend the timeout time to 10s incased of slow response
-    $Remote->expect(10, [
+    $Remote->expect(300, [
             'connecting (yes/no)?',
             sub {
                 my $self = shift;
@@ -338,7 +338,7 @@ sub rReboot($)
 
     # exp->expect( $timeout, @match_patterns );
     # OK, we extend the timeout time to 10s incased of slow response
-    $Remote->expect(10, [
+    $Remote->expect(300, [
             'connecting (yes/no)?',
             sub {
                 my $self = shift;
