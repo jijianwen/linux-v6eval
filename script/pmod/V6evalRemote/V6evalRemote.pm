@@ -366,10 +366,20 @@ sub rReboot($)
     return 1;
 }   # End of rReboot()
 
+# We use network restart instead of reboot here to save time
 sub rRebootAsync($)
 {
     my($timeout) = @_;
-    return rReboot($timeout);
+    $Remote->expect(5, [
+            '# ',
+            sub {
+                my $self = shift;
+                $self->send("sleep 20 && service network restart &\n");
+            }
+        ]) or print "rReboot: reboot failed...\n" and exit 0;
+
+    print "\n";
+    return 1;
 }   # End of rRebootAsync()
 
 =item rLogout()
