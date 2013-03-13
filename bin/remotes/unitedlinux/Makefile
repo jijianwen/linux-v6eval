@@ -47,7 +47,7 @@
 PREFIX=/usr/local/v6eval
 RMTDIR=$(PREFIX)/bin/unitedlinux
 REMOTES=cleardefr.rmt clearnc.rmt clearprefix.rmt clearroute.rmt \
-		dhcp6c.rmt dhcp6r.rmt dhcp6s.rmt \
+		dhcp6c.rmt dhcp6r.rmt dhcp6s.rmt linux_common.pm \
 		ikeClearAll.rmt ikeConfig.rmt ikeDump.rmt ikeEnable.rmt ikeInitiate.rmt \
 		ikeResetSA.rmt ikeSetSA.rmt ikeStart.rmt ikeStop.rmt ikeTunnel.rmt \
 		ipsecClearAll.rmt ipsecEnable.rmt ipsecResetSPD.rmt \

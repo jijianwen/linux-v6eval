@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+# This file was install in /usr/local/share/perl5/V6evalRemote.pm
 
 ########################################################################
 =pod
@@ -266,7 +267,7 @@ sub rCommand($$)
     print STDERR "rCommand: CmdOutput=''$CmdOutput''\n" if $debug;
 
     # get exit status
-    $Remote->send("echo $?\n") if ($Remote->expect($timeout, '# '));
+    $Remote->send("echo \$?\n") if ($Remote->expect($timeout, '# '));
     if(defined $Remote->expect($timeout, '-re', '[0-9]+')) {
         $s = $Remote->exp_match();
         print STDERR "rCommand : exit status $s\n" if $debug;
@@ -374,7 +375,10 @@ sub rRebootAsync($)
             '# ',
             sub {
                 my $self = shift;
-                $self->send("sleep 20 && service network restart &\n");
+				#$self->send("sleep 20 && service network restart &\n");
+				# As NUT always don't run network restart after sleep,
+				# We use at instead. Will find why sleep not work later.
+                $self->send("at now + 2 minutes -f restart_network.sh\n");
             }
         ]) or print "rReboot: reboot failed...\n" and exit 0;
 
