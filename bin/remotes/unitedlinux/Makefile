@@ -53,6 +53,8 @@ REMOTES=cleardefr.rmt clearnc.rmt clearprefix.rmt clearroute.rmt \
 		ipsecClearAll.rmt ipsecEnable.rmt ipsecResetSPD.rmt \
 		ipsecSetSAD.rmt ipsecSetSPD.rmt \
 		loginout.rmt manualaddrconf.rmt ping6.rmt \
+		getmibinfo.rmt getsysconfig.rmt setsysconfig.rmt \
+		getfile.rmt putfile.rmt rcommand.rmt rcommandasync.rmt \
 		racontrol.rmt reboot_async.rmt reboot.rmt route.rmt rtadvd.rmt tunnel.rmt \
 
 .PHONY: all depend clean

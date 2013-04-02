@@ -41,8 +41,11 @@ $Expect::Log_Stdout = 1;
     rOpen
     rLogin
     rCommand
+    rCommandAsync
     rReboot
     rRebootAsync
+    rPutfile
+    rGetfile
     rLogout
     rClose
     rType
@@ -66,6 +69,7 @@ BEGIN
     $Type = "unitedlinux";
     $User = "root";
     $Password = "redhat";
+    $SendSpeed = 0;
     undef $Remote;
 
     $CmdOutput = "";
@@ -108,7 +112,7 @@ sub rOpen {
     # it seems perl will auto enable autoflush after 5.6
     #aotoflush STDOUT 1;
 
-    getopts('t:d:l:u:p:v:i:o:Vh');
+    getopts('t:d:l:u:p:v:i:o:Vs:h');
     if($opt_h){
         usage();
         exit 0;
@@ -121,6 +125,7 @@ sub rOpen {
     $Password = $opt_p if defined($opt_p);  # password
 
     $debug = 1 if defined($opt_V);  # debug flag
+    $SendSpeed=$opt_s if defined($opt_s); #send speed
     $EnableLogout = $opt_l if defined($opt_l);  #enable logout
 
     my $TermCmd = "ssh -l root $Host";
@@ -278,6 +283,11 @@ sub rCommand($$)
     return 3;
 }   # End of rCommand()
 
+sub rCommandAsync($$)
+{
+    my($cmd, $timeout) = @_;
+    return rCommand($cmd, $timeout);
+}
 
 =item rReboot()
 
@@ -385,6 +395,208 @@ sub rRebootAsync($)
     print "\n";
     return 1;
 }   # End of rRebootAsync()
+
+#--------------------------------------------------------------------------#
+# sendMessages ()
+# Usage
+#   sendMessages($var_name)
+# Purpose
+#   Query out something
+# Parameter
+#   $var_name       # like "/dev/sda"
+#   $optional_var   # like "-s 512"
+# Returns
+#   ref_2_array     # $somethings_ref
+# Exceptions
+#   We die when we are old enough.
+# See Also
+#   fooc()
+#--------------------------------------------------------------------------#
+sub sendMessages(@) {
+    my(@strings) = @_;
+
+	foreach(@strings) {
+		if($SendSpeed == 0) {
+			print $Remote $_; # the same as $Remote->send()
+		} else {
+			$Remote->send_slow($SendSpeed, $_);
+		}
+	}
+}
+####################### End of functoin sendMessages()
+
+#--------------------------------------------------------------------------#
+# get_prompt ()
+# Usage
+#   get_prompt($var_name)
+# Purpose
+#   Query out something
+# Parameter
+#   $var_name       # like "/dev/sda"
+#   $optional_var   # like "-s 512"
+# Returns
+#   ref_2_array     # $somethings_ref
+# Exceptions
+#   We die when we are old enough.
+# See Also
+#   fooc()
+#--------------------------------------------------------------------------#
+sub get_prompt($) {
+	my ($timeout) = @_;
+	my $count = 0;
+
+	for(my $d = 0; $d < $timeout; $d ++) {
+		if(defined($Remote->expect(1, '-re', "# "))) {
+			$counrt ++;
+			last;
+		}
+		sendMessages("\n");
+	}
+	return($cournt);
+}
+####################### End of functoin get_prompt()
+
+#--------------------------------------------------------------------------#
+# rPutfile ()
+# Usage
+#   rPutfile($from, $to, $timeout)
+# Purpose
+#   Copy file $from remote $to local
+# Parameter
+#   $from       # like "/root/test"
+#   $to   		# like "/tmp/test"
+# Returns
+#       ==0: error
+#   	!=0: success
+# Exceptions
+#   We die when we are old enough.
+# See Also
+#   fooc()
+# Note
+#   This function is only used for ssh special mode. we should add the
+#   following config to /etc/ssh/ssh_config or .ssh/config on TN
+#
+#   EscapeChar ~
+#   PermitLocalCommand yes
+#   ControlMaster yes
+#--------------------------------------------------------------------------#
+sub rPutfile($$$) {
+	my($form, $to, $timeout) = @_;
+
+    if (!defined $Remote) {
+        print "rOpen() should be called first.\n";
+        return 0;
+    }
+
+	unless(get_prompt($timeout)) {
+		goto error;
+	}
+
+	$Remote->send("~C");
+	$Remote->expect($timeout, [
+			'> ',
+			sub {
+				my $self = shift;
+				$self->send("!scp $from root\@$Host:$to\n");
+				exp_continue;
+			}
+		],
+		[
+			'# ',
+			sub {
+				my $self = shift;
+				$self->send("date\n");
+			}
+		]
+	) or print STDERR "can't scp file from ssh\n" and return(0);
+
+	unless(get_prompt($timeout)) {
+		goto error;
+	}
+
+	if(!defined $Remote->expect($timeout, '-re', "# ")) {
+		print STDERR "Never sync with rPutfile\n";
+		goto error;
+	}
+
+	print STDERR "rPutfile: Copying completed\n" if $debug;
+	return(1);
+
+error:
+	return(0);
+}
+####################### End of functoin rPutfile()
+
+#--------------------------------------------------------------------------#
+# rGetfile ()
+# Usage
+#   rGetfile($from, $to, $timeout)
+# Purpose
+#   Copy file $from local $to remote
+# Parameter
+#   $from       # like "/root/test"
+#   $to   		# like "/tmp/test"
+# Returns
+#       ==0: error
+#   	!=0: success
+# Exceptions
+#   We die when we are old enough.
+# See Also
+#   fooc()
+# Note
+#   This function is only used for ssh special mode. we should add the
+#   following config to /etc/ssh/ssh_config or .ssh/config on TN
+#
+#   EscapeChar ~
+#   PermitLocalCommand yes
+#   ControlMaster yes
+#--------------------------------------------------------------------------#
+sub rGetfile($$$) {
+	my($form, $to, $timeout) = @_;
+
+    if (!defined $Remote) {
+        print "rOpen() should be called first.\n";
+        return 0;
+    }
+
+	unless(get_prompt($timeout)) {
+		goto error;
+	}
+
+	$Remote->send("~C");
+	$Remote->expect($timeout, [
+			'> ',
+			sub {
+				my $self = shift;
+				$self->send("!scp root\@$Host:$from $to\n");
+				exp_continue;
+			}
+		],
+		[
+			'# ',
+			sub {
+				my $self = shift;
+				$self->send("date\n");
+			}
+		]
+	) or print STDERR "can't scp file from ssh\n" and return(0);
+
+	unless(get_prompt($timeout)) {
+		goto error;
+	}
+
+	if(!defined $Remote->expect($timeout, '-re', "# ")) {
+		print STDERR "Never sync with rGetfile\n";
+		goto error;
+	}
+
+	print STDERR "rGetfile: Copying completed\n" if $debug;
+	return(1);
+
+error:
+	return(0);
+}
+####################### End of functoin rGetfile()
 
 =item rLogout()
 
