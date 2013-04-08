@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  * Yokogawa Electric Corporation, 
- * INTAP(Interoperability Technology Association for Information 
- * Processing, Japan), IPA (Information-technology Promotion Agency, Japan).
+ * INTAP (Interoperability Technology Association for Information Processing, Japan),
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -41,7 +41,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/Pz/McInit.cc,v 1.93 2005/11/02 04:05:39 akisada Exp $
+ * $TAHI: v6eval/lib/Pz/McInit.cc,v 1.95 2009/11/25 08:54:41 akisada Exp $
  */
 
 #include "McSub.h"
@@ -194,6 +194,9 @@ McObject::initialize()
 	LEXADD(McUpp_ICMPv6_NA,				"ICMPv6_NA" );
 	LEXADD(McUpp_ICMPv6_Redirect,			"ICMPv6_Redirect" );
 	LEXADD(McUpp_ICMPv6_MLDQuery,			"ICMPv6_MLDQuery");
+#ifndef NOT_USE_MLDV2_QUERY
+	LEXADD(McUpp_ICMPv6_MLDv2Query,			"ICMPv6_MLDv2Query");
+#endif	// NOT_USE_MLDV2_QUERY
 	LEXADD(McUpp_ICMPv6_MLDReport,			"ICMPv6_MLDReport");
 	LEXADD(McUpp_ICMPv6_MLDDone,			"ICMPv6_MLDDone");
 	LEXADD(McUpp_ICMPv6_MLDv2Report,		"ICMPv6_MLDv2Report");
@@ -3556,6 +3559,7 @@ McUpp_ICMPv6_MLDQuery *McUpp_ICMPv6_MLDQuery::create(CSTR key) {
 	mc->member( new MmUint( "MaxResponseDelay",16,	UN(0),	UN(0) ) );
 	mc->member( new MmUint( "Reserved",	16,	UN(0),	UN(0) ) );
 	mc->member( new MmV6Addr( "MulticastAddress",	MUST(),	MUST() ) );
+#ifdef NOT_USE_MLDV2_QUERY
 #ifdef USE_MLDV2_QUERY
 	mc->member(new MmUint("Resv",		4,	UN(0),	UN(0)));
 	mc->member(new MmUint("SFlag",		1,	UN(0),	UN(0)));
@@ -3573,10 +3577,51 @@ McUpp_ICMPv6_MLDQuery *McUpp_ICMPv6_MLDQuery::create(CSTR key) {
 		)
 	);
 #endif	// USE_MLDV2_QUERY
+#endif	// NOT_USE_MLDV2_QUERY
 	// dict
 	MmHeader_onICMPv6::add(mc);
 	return mc;
 }
+
+#ifndef NOT_USE_MLDV2_QUERY
+McUpp_ICMPv6_MLDv2Query *McUpp_ICMPv6_MLDv2Query::create(CSTR key) {
+	McUpp_ICMPv6_MLDv2Query *mc = new McUpp_ICMPv6_MLDv2Query(key);
+#if 0
+	mc->common_member();
+#else	// 0
+	int32_t Type = TP_ICMPv6_MLDQuery;
+
+	mc->type_member(
+		new MmUint( "Type",		8,	UN(Type),UN(Type) ) );
+	mc->Code_member(
+		new MmUint( "Code",		8,	UN(0),	UN(0) ) );
+	mc->member( new MmUppChecksum( "Checksum",	16 ) );
+	//isEqual(DEF_MUSTCHKSUM,DEF_MUSTPSEUDO,ICVCONST)
+#endif	// 0
+	mc->member( new MmUint( "MaxResponseDelay",16,	UN(0),	UN(0) ) );
+	mc->member( new MmUint( "Reserved",	16,	UN(0),	UN(0) ) );
+	mc->member( new MmV6Addr( "MulticastAddress",	MUST(),	MUST() ) );
+	mc->member(new MmUint("Resv",		4,	UN(0),	UN(0)));
+	mc->member(new MmUint("SFlag",		1,	UN(0),	UN(0)));
+	mc->member(new MmUint("QRV",		3,	UN(0),	UN(0)));
+	mc->member(new MmUint("QQIC",		8,	UN(0),	UN(0)));
+	mc->member(
+		new MmUint( "NumOfSources",	16,
+			GENEHC(mc,McUpp_ICMPv6_MLDv2Query,NumOfSources),
+			EVALANY(),		ICVCONST() ) );
+	
+	mc->member(
+		new MmMultiple(
+			new MmV6Addr("SourceAddress", MUST(), MUST()),
+			(METH_HC_MLC)&McUpp_ICMPv6_MLDv2Query::HC_MLC(SourceAddress)
+		)
+	);
+	// dict
+	MmHeader_onICMPv6::add(mc);
+	return mc;
+}
+#endif	// NOT_USE_MLDV2_QUERY
+
 McMLDv2_AddrRecord *McMLDv2_AddrRecord::create(CSTR key) {	
 	McMLDv2_AddrRecord *mc = new McMLDv2_AddrRecord(key);
 	mc->type_member(new MmUint("Type", 8, UN(0), UN(0)));

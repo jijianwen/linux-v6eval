@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Yokogawa Electric Corporation, YDC Corporation,
+# IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -41,7 +41,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/manual/ipsecSetSAD.rmt,v 1.15 2007/03/13 07:45:51 akisada Exp $
+# $TAHI: v6eval/bin/remotes/manual/ipsecSetSAD.rmt,v 1.18 2010/03/24 02:42:35 mario Exp $
 #
 ########################################################################
 use V6evalRemote;
@@ -55,6 +55,7 @@ my $prompt	= "$basename> ";
 #$rOpt_timeout
 
 print "\n";
+print "lio_start". "\n";
 print $prompt . "Set Security Association Database of NUT manually as following:\n\n";
 
 print $prompt . "src addr = $rOpt_src\n" if ($rOpt_src ne undef);
@@ -73,20 +74,21 @@ print $prompt . "ESP authentication Key = $rOpt_eauthkey\n" if (($rOpt_eauthkey 
 print $prompt . "ESP padding = $rOpt_padding\n" if ($rOpt_padding ne undef);
 print $prompt . "anti-replay service = Enable\n" if ($rOpt_rsize ne undef);
 print $prompt . "replay windows size = $rOpt_rsize byte\n" if ($rOpt_rsize ne undef);
-print $prompt . "nsrc addr = $rOpt_nsrc\n" if ($rOpt_nsrc ne undef);
-print $prompt . "ndst addr = $rOpt_ndst\n" if ($rOpt_ndst ne undef);
+print $prompt . "inner tunnel src addr = $rOpt_nsrc\n" if ($rOpt_nsrc ne undef);
+print $prompt . "inner tunnel dst addr = $rOpt_ndst\n" if ($rOpt_ndst ne undef);
 print $prompt . "hard life time duration of the SA = $rOpt_htime s\n" if ($rOpt_htime ne undef);
 print $prompt . "soft life time duration of the SA = $rOpt_stime s\n" if ($rOpt_stime ne undef);
 print "\n";
 print $prompt . "And this test is needed to map particular SA with SP\n\n" if ($rOpt_unique ne undef);
 print $prompt . "then press enter key.\a\n";
+print "lio_stop". "\n";
 <STDIN>;
 
 
 exit($V6evalRemote::exitPass);
 
 error:
-    exit($V6evalRemote::exitFAIL);
+    exit($V6evalRemote::exitFail);
 
 ########################################################################
 __END__

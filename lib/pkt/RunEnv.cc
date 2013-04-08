@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/pkt/RunEnv.cc,v 1.42 2008/04/02 06:42:41 akisada Exp $
+ * $TAHI: v6eval/lib/pkt/RunEnv.cc,v 1.43 2009/08/27 00:10:04 akisada Exp $
  */
 #include "RunEnv.h"
 #include "CmMain.h"
@@ -130,6 +130,7 @@ bool RunEnv::bufsize(CSTR s)	{
 	return true;}
 bool RunEnv::log(CSTR s)	{logLevel=(*s)?atoi(s):1; return true;}
 bool RunEnv::dbg(CSTR s)	{CmMain::setDbgFlags(s); return true;}
+bool RunEnv::hexdump()	{DoHexDump = true; return true;}
 bool RunEnv::timeout(CSTR s) {
 	s?sscanf(s,"%ld.%06ld",(long int *)&tvtimeout_.tv_sec,&tvtimeout_.tv_usec):0;
 	settimeout_=1; return true;}
@@ -245,6 +246,7 @@ bool RunEnv::doOption(STR* argv,StringList& l) {
 			case 'm': a=bufsize(*++argv);	break;
 			case 'l': a=log(++p);		break;
 			case 'd': a=dbg(++p);		break;
+			case 'x': a=hexdump();		break;
 			default: 
 				fprintf(stderr,"err: unknown option -%s\n",p);
 				a=false; break;}

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/Pz/MfAlgorithm.h,v 1.28 2008/10/28 01:30:04 akisada Exp $
+ * $TAHI: v6eval/lib/Pz/MfAlgorithm.h,v 1.30 2009/07/31 04:41:07 akisada Exp $
  */
 #if !defined(__MfAlgorithm_h__)
 #define	__MfAlgorithm_h__	1
@@ -365,6 +365,17 @@ virtual	void encrypt(OCTSTR,OCTSTR,uint32_t,const PObject*,OCTSTR) const;
 virtual	void decrypt(OCTSTR,OCTSTR,uint32_t,const PObject*,OCTSTR) const;
 };
 
+class MfRIJNDAEL_2: public MfRIJNDAEL {
+	public:
+		MfRIJNDAEL_2(CSTR,uint8_t,uint8_t,uint8_t);
+		virtual	~MfRIJNDAEL_2();
+		virtual bool checkArgument(const PFunction&, const PObjectList&) const;
+		virtual OCTBUF *encryptOctets(const OCTBUF &,
+			const PObjectList &, OCTBUF * = 0) const;
+		virtual OCTBUF *decryptOctets(const OCTBUF &,
+			const PObjectList &, OCTBUF *&) const;
+};
+
 //----------------------------------------------------------------------
 extern "C" {
 #include "crypto/camellia/camellia.h"
@@ -387,6 +398,17 @@ class MfAES_CTR: public MfCryptKey {
 			OCTSTR, uint32_t, const PObject *, OCTSTR) const;
 		virtual	void decrypt(OCTSTR,
 			OCTSTR, uint32_t, const PObject *, OCTSTR) const;
+};
+
+class MfAES_CTR_2: public MfAES_CTR {
+	public:
+		MfAES_CTR_2(CSTR, uint8_t, uint8_t, uint8_t);
+		virtual	~MfAES_CTR_2();
+		virtual bool checkArgument(const PFunction&, const PObjectList&) const;
+		virtual OCTBUF *encryptOctets(const OCTBUF &,
+			const PObjectList &, OCTBUF * = 0) const;
+		virtual OCTBUF *decryptOctets(const OCTBUF &,
+			const PObjectList &, OCTBUF *&) const;
 };
 
 //----------------------------------------------------------------------

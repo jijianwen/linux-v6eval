@@ -2,7 +2,7 @@
 
 				TAHI Project
 
-			$Date: 2008/04/03 08:26:18 $
+			$Date: 2009/11/25 07:22:17 $
 
 
 Project Overview
@@ -173,9 +173,6 @@ The Tool can generate and check the following headers and options:
 		Version 1 Multicast Listener Report
 		Version 1 Multicast Listener Done
 		Version 2 Multicast Listener Query
-			- You need to set USE_MLDV2_QUERY in lib/Pz/Makefile
-			  MLDv2 Query is incompatible with MLDv1 Query.
-
 		Version 2 Multicast Listener Report
 		Router Solicitation Header
 		Router Advertisement Header

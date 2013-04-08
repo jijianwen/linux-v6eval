@@ -179,7 +179,7 @@ MLDv2_AddrRecord addrrecord_05 {
 		SourceAddress = TN1_GLOBAL_UCAST;
 }
 //================================================================
-FEM_icmp6_mldquery_exth(
+FEM_icmp6_mldv2query_exth(
 	mldv2query_00,
 	_HETHER_mr0_to_all,
 	{
@@ -202,7 +202,7 @@ FEM_icmp6_mldquery_exth(
 	}
 )
 //================================================================
-FEM_icmp6_mldquery_exth(
+FEM_icmp6_mldv2query_exth(
 	mldv2query_01,
 	_HETHER_mr0_to_all,
 	{

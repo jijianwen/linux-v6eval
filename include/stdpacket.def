@@ -1,7 +1,7 @@
 //
-// Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-// Yokogawa Electric Corporation,
-// YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+// Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+// Yokogawa Electric Corporation, YDC Corporation,
+// IPA (Information-technology Promotion Agency, Japan).
 // All rights reserved.
 // 
 // Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 //
-// $TAHI: v6eval/include/stdpacket.def,v 1.35 2004/09/08 09:56:39 akisada Exp $
+// $TAHI: v6eval/include/stdpacket.def,v 1.36 2009/11/25 07:22:17 akisada Exp $
 //
 // stdpacket.def   standard packet definition
 //
@@ -429,12 +429,20 @@ _FEM_icmp6(Redirect,_pNAME,_pETHER,_oHDR_IPV6,_oICMPV6_Redirect)
 _FEM_icmp6_exth(Redirect,_pNAME,_pETHER,_oHDR_IPV6,_oPACKET_IPV6, _oICMPV6_Redirect)
 
 //---------------------------------------------------------------------
-// FEM_icmp6_mldquery
+// FEM_icmp6_mldquery for MLDv1
 #define FEM_icmp6_mldquery(_pNAME,_pETHER,_oHDR_IPV6,_oICMPV6_MLDQUERY) \
 _FEM_icmp6(MLDQuery,_pNAME,_pETHER,_oHDR_IPV6,_oICMPV6_MLDQUERY)
 
 #define FEM_icmp6_mldquery_exth(_pNAME,_pETHER,_oHDR_IPV6,_oPACKET_IPV6,_oICMPV6_MLDQUERY) \
 _FEM_icmp6_exth(MLDQuery,_pNAME,_pETHER,_oHDR_IPV6,_oPACKET_IPV6,_oICMPV6_MLDQUERY)
+
+//---------------------------------------------------------------------
+// FEM_icmp6_mldv2query for MLDv2
+#define FEM_icmp6_mldv2query(_pNAME,_pETHER,_oHDR_IPV6,_oICMPV6_MLDV2QUERY) \
+_FEM_icmp6(MLDv2Query,_pNAME,_pETHER,_oHDR_IPV6,_oICMPV6_MLDV2QUERY)
+
+#define FEM_icmp6_mldv2query_exth(_pNAME,_pETHER,_oHDR_IPV6,_oPACKET_IPV6,_oICMPV6_MLDV2QUERY) \
+_FEM_icmp6_exth(MLDv2Query,_pNAME,_pETHER,_oHDR_IPV6,_oPACKET_IPV6,_oICMPV6_MLDV2QUERY)
 
 //---------------------------------------------------------------------
 // FEM_icmp6_mldreport

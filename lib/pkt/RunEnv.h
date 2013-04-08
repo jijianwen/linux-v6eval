@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/pkt/RunEnv.h,v 1.25 2001/10/05 11:41:20 tanaka Exp $
+ * $TAHI: v6eval/lib/pkt/RunEnv.h,v 1.26 2009/08/27 00:10:04 akisada Exp $
  */
 #if !defined(__RunEnv_h__)
 #define	__RunEnv_h__	1
@@ -141,6 +141,7 @@ static	bool seek(CSTR);
 static	bool count(CSTR);
 static	bool log(CSTR);
 static	bool dbg(CSTR);
+static	bool hexdump(void);
 static	bool bufsize(CSTR);
 static	bool setString(CmCString*&,CSTR,CSTR =0);
 static	CSTR searchPath(CSTR,CSTR,CmCString&);

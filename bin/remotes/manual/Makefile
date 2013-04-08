@@ -1,7 +1,7 @@
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Yokogawa Electric Corporation, YDC Corporation,
+# IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -73,6 +73,13 @@ REMOTES=	cleardefr.rmt		\
 		mip6EnableHA.rmt	\
 		mip6EnableMN.rmt	\
 		mldv2.rmt		\
+		mldv2DisableHUT.rmt	\
+		mldv2DisableRUT.rmt	\
+		mldv2EnableHUT.rmt	\
+		mldv2EnableRUT.rmt	\
+		mldv2ListenerAPI.rmt	\
+		mldv2SetHUT.rmt		\
+		mldv2SetRUT.rmt		\
 		mldv2config.rmt		\
 		mtuconfig.rmt		\
 		multicastConfig.rmt	\

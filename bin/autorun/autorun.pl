@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Yokogawa Electric Corporation, YDC Corporation,
+# IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -41,7 +41,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/autorun/autorun.pl,v 1.32 2004/09/14 06:14:04 akisada Exp $
+# $TAHI: v6eval/bin/autorun/autorun.pl,v 1.35 2010/03/18 01:44:42 doo Exp $
 
 use Digest::MD5;
 
@@ -49,6 +49,9 @@ use V6evalCommon;
 use File::Basename;
 use Config;
 use Pod::Html;
+use YAML;
+use YAML::Dumper;
+
 
 sub printHeader();
 sub printTitle($);
@@ -68,9 +71,20 @@ sub printReport();
 sub parseIndex();
 sub makeFrame();
 sub printSummary();
+sub dump_yaml();
 
 $|=1;
 pathinit();
+
+my @ARGV_INDEXGEN = @ARGV;
+{
+	# refill ' for -title option
+	# @ARGV_INDEXGEN is used as arguments for indexgen
+	foreach my $elm (@ARGV_INDEXGEN) {
+		$elm =~ s/^-title=(.+)$/-title='$1'/g;
+	}
+}
+
 parseArgs();
 
 if (-e "index.html" && !$opt_f) {
@@ -111,7 +125,7 @@ unless($Config{sig_name} && $Config{sig_num}) {
 
 # get tool & test version
 my $dummy;
-($dummy,$VERTOOLS) = ('$Name: REL_3_1_0 $' =~ /\$(Name): (.*) \$/ );
+($dummy,$VERTOOLS) = ('$Name: REL_3_3_2 $' =~ /\$(Name): (.*) \$/ );
 $VERTOOLS='undefined' if(!$VERTOOLS);
 
 $StartTime=getDateString();
@@ -142,12 +156,8 @@ for($num=1;$status[$num]{type};$num++) {
 	last if(($rc>>8) == 64 || $rc == $sig_num{INT});
 
 	if($dotest){
-		if($opt_tiny != 0) {
-			makeFrame();
-			printSummary();
-		}
+		dump_yaml();
 
-		printReport();
 		print "========== TEST $current{number} ==========\n";
 		$rc=execScript( $current{script},
 				$current{packet},
@@ -168,12 +178,7 @@ $EndTime=getDateString();
 
 END {
 	if($mkindex) {
-		if($opt_tiny != 0) {
-			makeFrame();
-			printSummary();
-		}
-
-		printReport()
+		dump_yaml();
 	}
 
 	if($dogen){
@@ -938,6 +943,32 @@ sub printSummary() {
 	insertMD5("summary.html");
 
 	return;
+}
+
+sub dump_yaml()
+{
+	my $data = {
+		'VERTESTS'	=> $VERTESTS,
+		'VERTOOLS'	=> $VERTOOLS,
+		'StartTime'	=> $StartTime,
+		'EndTime'	=> $EndTime,
+		'results'	=> \@status,
+	};
+
+	my $yaml_file = '/tmp/indexgen.yaml';
+	my $dumper = YAML::Dumper->new;
+	local(*YAML);
+	open(YAML, '>'. $yaml_file);
+	print YAML $dumper->dump($data);
+	close(YAML);
+
+	my $cmd = searchPath($V6EVALBIN, "indexgen") || "indexgen";
+	$cmd .= ' ' . join(' ', @ARGV_INDEXGEN) ;
+	my $ret = system($cmd);
+
+	unlink($yaml_file);
+
+	return($ret);
 }
 
 ########################################################################

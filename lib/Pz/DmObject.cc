@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/Pz/DmObject.cc,v 1.8 2003/10/09 12:11:57 akisada Exp $
+ * $TAHI: v6eval/lib/Pz/DmObject.cc,v 1.9 2009/11/25 07:22:17 akisada Exp $
  */
 #include "DmObject.h"
 #include <stdio.h>
@@ -98,6 +98,9 @@ void DmObject::initialize() {
 	mcname(ICMPv6_NA,			NA);
 	mcname(ICMPv6_Redirect,			RED);
 	mcname(ICMPv6_MLDQuery,			MLDQ);
+#ifndef NOT_USE_MLDV2_QUERY
+	mcname(ICMPv6_MLDv2Query,		MLDQV2);
+#endif	// NOT_USE_MLDV2_QUERY
 	mcname(ICMPv6_MLDReport,		MLDR);
 	mcname(ICMPv6_MLDDone,			MLDD);
 	mcname(ICMPv6_MLDv2Report,		MLDRV2);

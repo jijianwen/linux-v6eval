@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  * Yokogawa Electric Corporation, 
- * INTAP(Interoperability Technology Association for Information 
- * Processing, Japan), IPA (Information-technology Promotion Agency, Japan).
+ * INTAP (Interoperability Technology Association for Information Processing, Japan),
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 

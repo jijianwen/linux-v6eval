@@ -1,7 +1,7 @@
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Yokogawa Electric Corporation, YDC Corporation,
+# IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/script/pmod/V6evalTool/V6evalTool.pm,v 1.200 2006/03/09 09:10:57 akisada Exp $
+# $TAHI: v6eval/script/pmod/V6evalTool/V6evalTool.pm,v 1.204 2011/04/22 01:27:06 doo Exp $
 #
 ########################################################################
 package V6evalTool;
@@ -943,8 +943,16 @@ vSleep($;$)
 	prLog("<TR VALIGN=\"TOP\">\n<TD>$timestr</TD>\n<TD>$msg\n</TD></TR>");
 	$vLogStat=$vLogStatCloseRow;
 	prOut("$msg\n");
-	sleep $seconds;
-
+	# sleep $seconds;
+	# use following sequence instead of sleep $seconds;
+	# derived from [users:01956]
+	my $timeBeg=time;
+	my $timeAtEnd=($timeBeg+$seconds);
+	while(1){
+		my $timeNow=time;
+		if ( $timeNow ge $timeAtEnd ){ last };
+		sleep 1;
+	}
 }
 
 
@@ -2129,9 +2137,12 @@ initialize()
 			push(@PktbufPids, forkCmd($cmd,$log) );
 			# run tcpdump
 			my($if)=$TnDef{$ifname."_device"};
+			my ($basename, $dirname) = fileparse($LogFile);
+			$basename =~ s/\./_/g;
+			my $pcapfile = $dirname . $basename . '_' . $ifname;
 			$cmd="$dumpCmd ".
 			    "-i $if ".
-			    "-w $LogFile.$ifname.dump ";
+			    "-w $pcapfile.pcap ";
 			unless(defined($ENV{'V6EVAL_WITH_KOI'})) {
 			push(@TcpdumpPids, forkCmdWoCheck($cmd,'/dev/null') );
 			}
@@ -2142,7 +2153,7 @@ initialize()
 				"TN : @TnIfs\nNUT: @NutIfs");
 	}
 
-	vCPP($CppOption);
+	vCPP("$CppOption -D__INITIALIZE_V6EVAL__");
 	undef $OriginalPktDef;
 	undef $OriginalPktImd;
 
@@ -2213,7 +2224,7 @@ getVersion()
 {
 	my $dummy;
 
-	($dummy, $ToolVersion) = ('$Name: REL_3_1_0 $' =~ /\$(Name): (.*) \$/ );
+	($dummy, $ToolVersion) = ('$Name: REL_3_3_2 $' =~ /\$(Name): (.*) \$/ );
 	if(!$ToolVersion){
 		$ToolVersion=   'undefined';
 	}

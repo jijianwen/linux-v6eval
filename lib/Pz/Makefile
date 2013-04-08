@@ -40,9 +40,6 @@ VPATH = crypto/rijndael crypto/camellia
 # RFC 3376, IGMPv3
 # CXXFLAGS+=	-DNOT_USE_IGMPV3_QUERY
 
-# RFC 3810, MLDv2 for IPv6
-# CXXFLAGS+=	-DUSE_MLDV2_QUERY
-
 # RFC 3775, Mobility Support in IPv6
 # CXXFLAGS+=	-DRR_DBG
 

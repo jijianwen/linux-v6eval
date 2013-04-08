@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Yokogawa Electric Corporation, YDC Corporation,
+# IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -41,7 +41,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/manual/ikeSetSA.rmt,v 1.4 2006/03/27 02:31:09 hide Exp $
+# $TAHI: v6eval/bin/remotes/manual/ikeSetSA.rmt,v 1.5 2010/03/24 02:42:35 mario Exp $
 #
 ########################################################################
 use V6evalRemote;
@@ -53,6 +53,7 @@ my $basename	= basename($0, '.rmt');
 my $prompt	= "$basename> ";
 
 print "\n";
+print "lio_start". "\n";
 print $prompt . "Set Security Association Configure of NUT manually as following:\n\n";
 #print $prompt . "This remote command is incomplete one.\n";
 #print $prompt . "If you want to continue test, be careful.\n\n";
@@ -100,9 +101,11 @@ print $prompt . "\t\tlifetime 2 = $rOpt_lifetime_2\n" if ($rOpt_lifetime_2 ne un
 print $prompt . "\t\tlifetime unit2 = $rOpt_lifetime_unit_2\n" if ($rOpt_lifetime_unit_2 ne undef);
 print "\n";
 print $prompt . "then press enter key.\a\n";
+print "lio_stop". "\n";
 
 <STDIN>;
 
+print "lio_start". "\n";
 print $prompt . "Set Phase-2 parameter.\n";
 print $prompt . "id type = $rOpt_ph2_id_type\n" if ($rOpt_ph2_id_type ne undef);
 print $prompt . "src id = $rOpt_ph2_src_id\n" if ($rOpt_ph2_src_id ne undef);
@@ -148,6 +151,7 @@ for (my $i = 1; $i <= $rOpt_ipsec_p_num; $i++){
 print "\n";
 print $prompt . "Execute IKE program.\n";
 print $prompt . "then press enter key.\a\n";
+print "lio_stop". "\n";
 
 <STDIN>;
 

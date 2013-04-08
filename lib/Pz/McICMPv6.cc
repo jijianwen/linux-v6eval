@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/Pz/McICMPv6.cc,v 1.16 2003/10/09 12:11:57 akisada Exp $
+ * $TAHI: v6eval/lib/Pz/McICMPv6.cc,v 1.17 2009/11/25 07:22:17 akisada Exp $
  */
 #include "McICMPv6.h"
 #include "ItPosition.h"
@@ -101,6 +101,14 @@ bool McUpp_ICMPv6::overwrite_DictType(
 	//
 	const PvNumber* pv = (const PvNumber*)rtype->pvalue();
 	uint32_t typevalue = pv->value();
+#ifndef NOT_USE_MLDV2_QUERY
+	if (typevalue == (uint32_t)TP_ICMPv6_MLDQuery) { // MLD Query
+		uint32_t limit = buf.remainLength(at.bytes());
+		if (limit >= 28) { // MLDv2
+			typevalue = TP_ICMPv6_MLDv2Query;
+		}
+	}
+#endif	// NOT_USE_MLDV2_QUERY
 	c.DictType().type_Set(typevalue);	//self Type set
 	delete rtype;
 	return true;}
@@ -324,9 +332,11 @@ bool MmMLDv2AddrRecord_onICMPv6::overwrite_DictType(
 #define MLDV2OFFSET	28 // (Type Code Checksum MaxResponseCode Resv McastAddr ... NumOfSources ) = 28 Byte
 #define MLDV2ADDRLEN	16 //address record length
 
+// MLDv1
 McUpp_ICMPv6_MLDQuery::McUpp_ICMPv6_MLDQuery(CSTR key):McUpp_ICMPv6(key) {}
 McUpp_ICMPv6_MLDQuery::~McUpp_ICMPv6_MLDQuery() {}
 
+#ifdef NOT_USE_MLDV2_QUERY
 bool McUpp_ICMPv6_MLDQuery::HCGENE(NumOfSources)(WControl &cntr, WObject *wmem, OCTBUF &buf) const {
 	WObject *wc = wmem->parent();
 	uint32_t reallen = wc->size().bytes();
@@ -339,5 +349,25 @@ uint32_t McUpp_ICMPv6_MLDQuery::HC_MLC(SourceAddress)(const ItPosition &at, OCTB
 	uint32_t length = (buf.remainLength(at.bytes()) - MLDV2OFFSET) / MLDV2ADDRLEN;
 	return(length);
 } 
+#else	// NOT_USE_MLDV2_QUERY
+// MLDv2
+McUpp_ICMPv6_MLDv2Query::McUpp_ICMPv6_MLDv2Query(CSTR key):McUpp_ICMPv6(key) {}
+McUpp_ICMPv6_MLDv2Query::~McUpp_ICMPv6_MLDv2Query() {}
+
+bool McUpp_ICMPv6_MLDv2Query::HCGENE(NumOfSources)(WControl &cntr, WObject *wmem, OCTBUF &buf) const {
+	WObject *wc = wmem->parent();
+	uint32_t reallen = wc->size().bytes();
+	uint32_t valulen = (reallen - MLDV2OFFSET)/MLDV2ADDRLEN;
+	PvNumber def(valulen);
+
+	return(def.generate(cntr, wmem, buf));
+}
+
+uint32_t McUpp_ICMPv6_MLDv2Query::HC_MLC(SourceAddress)(const ItPosition &at, OCTBUF &buf) const {
+	uint32_t length = (buf.remainLength(at.bytes()) - MLDV2OFFSET) / MLDV2ADDRLEN;
+	return(length);
+} 
+#endif	// NOT_USE_MLDV2_QUERY
+
 #undef MLDV2OFFSET
 #undef MLDV2ADDRLEN

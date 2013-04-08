@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-# Yokogawa Electric Corporation,
-# YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+# Yokogawa Electric Corporation, YDC Corporation,
+# IPA (Information-technology Promotion Agency, Japan).
 # All rights reserved.
 # 
 # Redistribution and use of this software in source and binary forms, with 
@@ -41,7 +41,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $TAHI: v6eval/bin/remotes/manual/manualaddrconf.rmt,v 1.9 2005/07/07 12:49:48 ozoe Exp $
+# $TAHI: v6eval/bin/remotes/manual/manualaddrconf.rmt,v 1.12 2010/03/30 07:34:55 akisada Exp $
 #
 ########################################################################
 use V6evalRemote;
@@ -73,7 +73,7 @@ my $basename	= basename($0, '.rmt');
 my $prompt	= "$basename> ";
 
 print "\n";
-
+print "lio_start". "\n";
 if ($NUTaddrfamily eq "inet" ) {
 	if ($NUTaddrtype eq "add"){
 		$NUTparam = "netmask ".$NUTnetmask if ($NUTnetmask ne "");
@@ -81,6 +81,7 @@ if ($NUTaddrfamily eq "inet" ) {
 		$NUTparam = "delete";
 	}else{
 		print $prompt . "$NUTaddrfamily: Unknown address type $NUTaddrtype\n";
+		print "lio_stop". "\n";
 		goto error;
 	}
 }elsif ($NUTaddrfamily eq "inet6" ) {
@@ -92,10 +93,12 @@ if ($NUTaddrfamily eq "inet" ) {
 		$NUTparam = "delete";
 	}else{
 		print $prompt . "$NUTaddrfamily: Unknown address type $NUTaddrtype\n";
+		print "lio_stop". "\n";
 		goto error;
 	}
 }else {
 	print $prompt . "$NUTaddrfamily: Unknown address type $NUTaddrfamily\n";
+	print "lio_stop". "\n";
 	goto error;
 }
 
@@ -106,9 +109,11 @@ if($NUTaddrfamily eq "inet6") {
 	print $prompt . "Do ``ifconfig $NUTif $NUTaddrfamily $NUTaddr ".
 		"$NUTparam'' manually,\n";
 }else {
+    print "lio_stop". "\n";
     goto error;
 }
-print $prompt . "then type Enter key.\a\n";
+print $prompt . "then press Enter key.\a\n";
+print "lio_stop". "\n";
     <STDIN>;
 
 
@@ -117,7 +122,7 @@ sleep($rOpt_dadtime);
 exit($V6evalRemote::exitPass);
 
 error:
-    exit($V6evalRemote::exitFAIL);
+    exit($V6evalRemote::exitFail);
 
 ########################################################################
 __END__

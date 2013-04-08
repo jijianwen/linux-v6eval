@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/pkt/PktRcvClient.cc,v 1.20 2003/04/17 02:22:20 akisada Exp $
+ * $TAHI: v6eval/lib/pkt/PktRcvClient.cc,v 1.23 2009/11/25 07:26:56 akisada Exp $
  */
 #include "PktRcvClient.h"
 #include "CmMain.h"
@@ -87,6 +87,21 @@ bool PktRcvClient::evaluate(const bpf_hdr& h,STR s) {
 	RAFControl rc(candidates_);
 	bool okng=false;
 	CSTR result=rc.reverseEvaluate(*reverser_,rcv,okng);
+
+	if(DoHexDump) {
+		uint32_t d	= 0;
+		COCTSTR buffer	= rcv.string();
+		uint32_t length	= rcv.length();
+
+		printf("hex:");
+
+		for(d = 0; d < length; d ++) {
+			printf("%02x", buffer[d]);
+		}
+
+		printf("\n");
+	}
+
 	printf("std: %ld.%06d %s\n",(long)sec,usec,result);
 	return okng;}
 

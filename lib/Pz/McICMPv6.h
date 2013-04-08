@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/Pz/McICMPv6.h,v 1.22 2005/05/09 09:35:23 akisada Exp $
+ * $TAHI: v6eval/lib/Pz/McICMPv6.h,v 1.24 2009/11/26 01:07:51 akisada Exp $
  */
 #if !defined(__McICMPv6_h__)
 #define	__McICMPv6_h__	1
@@ -60,6 +60,9 @@ const int32_t TP_ICMPv6_ParameterProblem	=4;
 const int32_t TP_ICMPv6_EchoRequest		=128;
 const int32_t TP_ICMPv6_EchoReply		=129;
 const int32_t TP_ICMPv6_MLDQuery		=130;
+#ifndef NOT_USE_MLDV2_QUERY
+const int32_t TP_ICMPv6_MLDv2Query		=0xffffff00 | TP_ICMPv6_MLDQuery; // original id for MLDv2
+#endif	// NOT_USE_MLDV2_QUERY
 const int32_t TP_ICMPv6_MLDReport		=131;
 const int32_t TP_ICMPv6_MLDDone			=132;
 const int32_t TP_ICMPv6_RS			=133;
@@ -212,10 +215,26 @@ public:
 static	McUpp_ICMPv6_MLDQuery *create(CSTR);
 	int32_t icmpv6Type()const{return TP_ICMPv6_MLDQuery;}
 
+#ifdef NOT_USE_MLDV2_QUERY
+	//HardCording action method
+	DEC_HCGENE(NumOfSources);
+	DEC_HC_MLC(SourceAddress);
+#endif	// NOT_USE_MLDV2_QUERY
+};
+
+#ifndef NOT_USE_MLDV2_QUERY
+class McUpp_ICMPv6_MLDv2Query: public McUpp_ICMPv6 { // MLDv2 Support
+public:
+	McUpp_ICMPv6_MLDv2Query(CSTR);
+	~McUpp_ICMPv6_MLDv2Query();
+static	McUpp_ICMPv6_MLDv2Query *create(CSTR);
+	int32_t icmpv6Type()const{return TP_ICMPv6_MLDv2Query;}
+
 	//HardCording action method
 	DEC_HCGENE(NumOfSources);
 	DEC_HC_MLC(SourceAddress);
 };
+#endif	// NOT_USE_MLDV2_QUERY
 
 class McUpp_ICMPv6_EchoRequest: public McUpp_ICMPv6 {
 	public:

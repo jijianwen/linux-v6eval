@@ -2,7 +2,7 @@
 
 			     TAHI Project
 
-		     $Date: 2008/04/03 08:27:35 $
+		     $Date: 2010/03/30 07:39:49 $
 
 
 
@@ -34,9 +34,7 @@ Prerequisites
 Prerequisites for TN:
 
 	- The package supports
-		FreeBSD 6.3-RELEASE or higher
-
-	- The package can also coexist with KAME for FreeBSD.
+		FreeBSD/i386 7.3-RELEASE or higher
 
 
 
@@ -46,7 +44,7 @@ Installing the package onto TN
 1. Extracting the package
 
 	% cd $SOMEWHERE
-	% tar zxvf v6eval-X.X.tar.gz
+	% tar zxvf v6eval-X.Y.Z.tar.gz
 
 2. Installing perl-related modules
 
@@ -56,17 +54,19 @@ Installing the package onto TN
 		- IO-Stty
 		- IO-Tty
 		- Digest-MD5
+		- YAML
 
 	you can install them from the package's ports directory.
 
 		# (cd /usr/ports/lang/p5-Expect && make install)
 		# (cd /usr/ports/security/p5-Digest-MD5 && make install)
+		# (cd /usr/ports/textproc/p5-YAML && make install)
 
 3. Compiling & installing the tool
 
 	Install the Tool in /usr/local/v6eval directory.
 
-		% cd $SOMEWHERE/v6eval-X.X
+		% cd $SOMEWHERE/v6eval-X.Y.Z
 		% make
 		# make install
 
@@ -188,7 +188,7 @@ The file has the following entries:
 
 			Default: cuaa0
 
-			If TN is FreeBSD 6.0-RELEASE or higher,
+			If TN is FreeBSD/i386 6.0-RELEASE or higher,
 			you may need to specify cuad0 as RemoteDevice.
 
 	RemoteDebug	Specifies debug level for remote control.
@@ -387,7 +387,7 @@ its samples. After running samples, you can see the report in the directory
 by Web Browser. Since they are samples, you do not have to worry even
 when you see the word "FAIL" in the report.
 
-	$ cd $SOMEWHERE/v6eval-X.X/sample
+	$ cd $SOMEWHERE/v6eval-X.Y.Z/sample
 	$ /usr/local/v6eval/bin/autorun INDEX
 	$ netscape index.html
 
@@ -412,4 +412,4 @@ Running Conformance Test
 To run IPv6 Conformance Test, please refer to INSTALL.ct (in ct package).
 
 
-							[end of INSTALL]
+                                                        [end of INSTALL]

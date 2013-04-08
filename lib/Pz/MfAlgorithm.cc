@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/Pz/MfAlgorithm.cc,v 1.47 2008/10/28 01:30:04 akisada Exp $
+ * $TAHI: v6eval/lib/Pz/MfAlgorithm.cc,v 1.49 2009/07/31 04:41:07 akisada Exp $
  */
 #include "MfAlgorithm.h"
 #include "PAlgorithm.h"
@@ -413,6 +413,177 @@ MfAES_CTR::decrypt(OCTSTR os,
 
 
 
+MfAES_CTR_2::MfAES_CTR_2(CSTR s,uint8_t k,uint8_t i,uint8_t a):MfAES_CTR(s,k,i,a) {}
+MfAES_CTR_2::~MfAES_CTR_2() {}
+
+bool
+MfAES_CTR_2::checkArgument(const PFunction& o, const PObjectList& a) const
+{
+	bool ok	= true;
+	bool rc	= true;
+	uint32_t n	= a.size();
+	CSTR name	= o.metaString();
+
+	if((n!=1) && (n!=2) && (n!=3)) {
+		o.error("E %s mast have 1-3 arguments, not %d", name, n);
+		return(false);
+	}
+
+	if(!a[0]->isOctets()) {
+		o.error("E %s first argument has to be octet stream", name);
+		rc = false;
+	}
+
+	if(n > 1) {
+		if(!a[1]->isOctets()) {
+			o.error("E %s second argument has to be octet stream", name);
+			rc = false;
+		}
+	}
+
+	if(n == 3) {
+		uint32_t t	= a[2]->intValue(ok);
+
+		if(!ok) {
+			o.error("E %s third argument has to be int",name);
+			rc	= false;
+		}
+
+		uint32_t l	= t * alignUnit();
+		if(l > 256) {
+			o.error("E %s alignment %d is too big", name, t);
+			rc = false;
+		}
+	}
+
+	return(rc);
+}
+
+OCTBUF *
+MfAES_CTR_2::encryptOctets(const OCTBUF &text,
+	const PObjectList &a, OCTBUF *ivec) const
+{
+	if(DBGFLAGS('E')) {
+		printf("===text\n");
+		text.dump();
+		printf("\n");
+	}
+
+	//--------------------------------------------------------------
+	// length check
+	uint32_t lenc	= text.length();
+
+	//--------------------------------------------------------------
+	// initial vector
+	// if no ivec specified in function, it's depend on malloc
+	// how can i return random value?
+	// should i make it error?
+	OCTSTR ivp	= 0;
+
+	if(a.size() > 1) {
+		PObject *p1 = a[1];
+		PvOctets tmpivec;
+
+		if(p1->generateOctetsWith(tmpivec, 0)) {
+			ivp	= tmpivec.buffer();
+		}
+	}
+
+	uint32_t ivlen	= ivecLength();
+	if(ivec!=0) {
+		ivec->set(ivlen, ivp);
+	}
+
+	PvOctets ivwork(ivlen, ivp, true);	// IV field changes
+	PvOctets *enc	= new PvOctets(ivlen + lenc);
+
+	OCTSTR os	= enc->buffer();
+	OCTSTR is	= (OCTSTR)text.string();
+
+	PObject *p0	= a[0];
+	PvOctets tmpkey;
+	p0->generateOctetsWith(tmpkey, 0);
+	const PObject *k	= &tmpkey;
+
+	OCTSTR wp	= ivwork.buffer();
+
+	memcpy(os, wp, ivlen);
+	os += ivlen;	// initial vector
+
+	if(!alignmentCheck(lenc, a)) {
+		MfCrypt::encrypt(os, is, lenc, k, wp);
+	} else {
+		encrypt(os, is, lenc, k, wp);
+	}
+
+	if(DBGFLAGS('E')) {
+		printf("===encrypt\n");
+		enc->dump();
+		printf("\n");
+	}
+
+	return(enc);
+}
+
+
+
+OCTBUF *
+MfAES_CTR_2::decryptOctets(const OCTBUF &cipher,
+	const PObjectList &a, OCTBUF *&ivec) const
+{
+	if(DBGFLAGS('D')) {
+		printf("===cipher\n");
+		cipher.dump();
+		printf("\n");
+	}
+
+	//--------------------------------------------------------------
+	// length check: use super class decrypt
+	uint32_t lcipher	= cipher.length();
+	uint32_t ivlen	= ivecLength();
+	uint32_t ldec	= lcipher-ivlen;
+
+	//--------------------------------------------------------------
+	// initial vector
+	OCTSTR cp	= (OCTSTR)cipher.string();
+
+	if(ivlen>0) {
+		if(ivec == 0) {
+			ivec	= new PvOctets(0);
+		}
+
+		ivec->set(ivlen, cp);
+	}
+
+	PvOctets ivwork(ivlen, cp, true);		// IV field changes
+	PvOctets *dec	= new PvOctets(ldec);
+	OCTSTR os	= dec->buffer();
+	OCTSTR is	= cp + ivlen;
+
+	PObject *p0 = a[0];
+	PvOctets tmpkey;
+	p0->generateOctetsWith(tmpkey, 0);
+	const PObject *k	= &tmpkey;
+
+	OCTSTR wp	= ivwork.buffer();
+
+	if(!alignmentCheck(ldec,a)) {
+		MfCrypt::decrypt(os, is, ldec, k, wp);
+	} else {
+		decrypt(os, is, ldec, k, wp);
+	}
+
+	if(DBGFLAGS('D')) {
+		printf("===decrypt\n");
+		dec->dump();
+		printf("\n");
+	}
+
+	return(dec);
+}
+
+
+
 #ifdef AES_CTR_NONCE_SIZE
 #undef AES_CTR_NONCE_SIZE
 #endif	/* AES_CTR_NONCE_SIZE */
@@ -656,7 +827,7 @@ MfIKE_DESCBC::checkArgument(const PFunction &o, const PObjectList &a) const
 	}
 
 	if(n > 1) {
-		if(!a[0]->isOctets()) {
+		if(!a[1]->isOctets()) {
 			o.error("E %s second argument has to be octet stream",
 				name);
 
@@ -702,7 +873,7 @@ MfIKE_DES3CBC::checkArgument(const PFunction &o, const PObjectList &a) const
 	}
 
 	if(n > 1) {
-		if(!a[0]->isOctets()) {
+		if(!a[1]->isOctets()) {
 			o.error("E %s second argument has to be octet stream",
 				name);
 
@@ -1285,6 +1456,176 @@ xdmp("/tmp/isakmp_dbg.txt", "MfDES3CBC_2", "key",
 
 MfRIJNDAEL::MfRIJNDAEL(CSTR s,uint8_t k,uint8_t i,uint8_t a):MfCryptKey(s,k,i,a) {}
 MfRIJNDAEL::~MfRIJNDAEL() {}
+
+MfRIJNDAEL_2::MfRIJNDAEL_2(CSTR s,uint8_t k,uint8_t i,uint8_t a):MfRIJNDAEL(s,k,i,a) {}
+MfRIJNDAEL_2::~MfRIJNDAEL_2() {}
+
+bool
+MfRIJNDAEL_2::checkArgument(const PFunction& o, const PObjectList& a) const
+{
+	bool ok	= true;
+	bool rc	= true;
+	uint32_t n	= a.size();
+	CSTR name	= o.metaString();
+
+	if((n!=1) && (n!=2) && (n!=3)) {
+		o.error("E %s mast have 1-3 arguments, not %d", name, n);
+		return(false);
+	}
+
+	if(!a[0]->isOctets()) {
+		o.error("E %s first argument has to be octet stream", name);
+		rc = false;
+	}
+
+	if(n > 1) {
+		if(!a[1]->isOctets()) {
+			o.error("E %s second argument has to be octet stream", name);
+			rc = false;
+		}
+	}
+
+	if(n == 3) {
+		uint32_t t	= a[2]->intValue(ok);
+
+		if(!ok) {
+			o.error("E %s third argument has to be int",name);
+			rc	= false;
+		}
+
+		uint32_t l	= t * alignUnit();
+		if(l > 256) {
+			o.error("E %s alignment %d is too big", name, t);
+			rc = false;
+		}
+	}
+
+	return(rc);
+}
+
+OCTBUF *
+MfRIJNDAEL_2::encryptOctets(const OCTBUF &text,
+	const PObjectList &a, OCTBUF *ivec) const
+{
+	if(DBGFLAGS('E')) {
+		printf("===text\n");
+		text.dump();
+		printf("\n");
+	}
+
+	//--------------------------------------------------------------
+	// length check
+	uint32_t lenc	= text.length();
+
+	//--------------------------------------------------------------
+	// initial vector
+	// if no ivec specified in function, it's depend on malloc
+	// how can i return random value?
+	// should i make it error?
+	OCTSTR ivp	= 0;
+
+	if(a.size() > 1) {
+		PObject *p1 = a[1];
+		PvOctets tmpivec;
+
+		if(p1->generateOctetsWith(tmpivec, 0)) {
+			ivp	= tmpivec.buffer();
+		}
+	}
+
+	uint32_t ivlen	= ivecLength();
+	if(ivec!=0) {
+		ivec->set(ivlen, ivp);
+	}
+
+	PvOctets ivwork(ivlen, ivp, true);	// IV field changes
+	PvOctets *enc	= new PvOctets(ivlen + lenc);
+
+	OCTSTR os	= enc->buffer();
+	OCTSTR is	= (OCTSTR)text.string();
+
+	PObject *p0	= a[0];
+	PvOctets tmpkey;
+	p0->generateOctetsWith(tmpkey, 0);
+	const PObject *k	= &tmpkey;
+
+	OCTSTR wp	= ivwork.buffer();
+
+	memcpy(os, wp, ivlen);
+	os += ivlen;	// initial vector
+
+	if(!alignmentCheck(lenc, a)) {
+		MfCrypt::encrypt(os, is, lenc, k, wp);
+	} else {
+		encrypt(os, is, lenc, k, wp);
+	}
+
+	if(DBGFLAGS('E')) {
+		printf("===encrypt\n");
+		enc->dump();
+		printf("\n");
+	}
+
+	return(enc);
+}
+
+
+
+OCTBUF *
+MfRIJNDAEL_2::decryptOctets(const OCTBUF &cipher,
+	const PObjectList &a, OCTBUF *&ivec) const
+{
+	if(DBGFLAGS('D')) {
+		printf("===cipher\n");
+		cipher.dump();
+		printf("\n");
+	}
+
+	//--------------------------------------------------------------
+	// length check: use super class decrypt
+	uint32_t lcipher	= cipher.length();
+	uint32_t ivlen	= ivecLength();
+	uint32_t ldec	= lcipher-ivlen;
+
+	//--------------------------------------------------------------
+	// initial vector
+	OCTSTR cp	= (OCTSTR)cipher.string();
+
+	if(ivlen>0) {
+		if(ivec == 0) {
+			ivec	= new PvOctets(0);
+		}
+
+		ivec->set(ivlen, cp);
+	}
+
+	PvOctets ivwork(ivlen, cp, true);		// IV field changes
+	PvOctets *dec	= new PvOctets(ldec);
+	OCTSTR os	= dec->buffer();
+	OCTSTR is	= cp + ivlen;
+
+	PObject *p0 = a[0];
+	PvOctets tmpkey;
+	p0->generateOctetsWith(tmpkey, 0);
+	const PObject *k	= &tmpkey;
+
+	OCTSTR wp	= ivwork.buffer();
+
+	if(!alignmentCheck(ldec,a)) {
+		MfCrypt::decrypt(os, is, ldec, k, wp);
+	} else {
+		decrypt(os, is, ldec, k, wp);
+	}
+
+	if(DBGFLAGS('D')) {
+		printf("===decrypt\n");
+		dec->dump();
+		printf("\n");
+	}
+
+	return(dec);
+}
+
 MfCAMELLIA::MfCAMELLIA(CSTR s,uint8_t k,uint8_t i,uint8_t a):MfCryptKey(s,k,i,a) {}
 MfCAMELLIA::~MfCAMELLIA() {}
 MfAuth::MfAuth(CSTR s,uint8_t i,uint8_t a):MvFunction(s),

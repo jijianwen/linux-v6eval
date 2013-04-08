@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- * Yokogawa Electric Corporation,
- * YDC Corporation, IPA (Information-technology Promotion Agency, Japan).
+ * Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Yokogawa Electric Corporation, YDC Corporation,
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -40,7 +40,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/Cm/CmMain.h,v 1.8 2003/10/23 04:37:30 akisada Exp $
+ * $TAHI: v6eval/lib/Cm/CmMain.h,v 1.9 2009/08/27 00:10:04 akisada Exp $
  */
 #ifndef _Cm_CmMain_h_
 #define _Cm_CmMain_h_	1
@@ -140,6 +140,7 @@ private:
 };
 extern char dbgFlags[];
 extern uint32_t logLevel;
+extern bool DoHexDump;
 #define applMain() void applicationMain(CmMain* main) 
 //----------------------------------------------------------------------
 // inline´Ø¿ô

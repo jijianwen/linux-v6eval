@@ -1,10 +1,115 @@
 
 
 
-		CHANGELOG for IPv6 Conformance Test Tool
+                CHANGELOG for IPv6 Conformance Test Tool
 
-		     $Date: 2008/10/28 02:11:02 $
+                      $Date: 2011/04/22 01:38:40 $
 
+
+
+2011/04/22	Release 3.3.2
+	Official release
+
+
+2011/04/22	Hiroki Endo
+	M script/pmod/V6evalTool/V6evalTool.pm
+		- Changed vSleep() derived from [users:01956]
+
+
+2010/07/23	Release 3.3.1
+	Official release
+
+
+2010/05/31	Hiroki Endo
+	M lib/pkt/LxLexer.cc
+		- Truncated the value calculated HMAC-SHA2-256 to 96-bits
+
+
+2010/03/31	Release 3.3.0
+	Official release
+
+
+2010/03/24	akisada
+	M script/pmod/V6evalTool/V6evalTool.pm
+		- Improved the internal initialization procedure at 
+		  processing macro processor for the packet definition
+
+
+2010/03/04	Hiroki Endo
+	M bin/Makefile
+	M bin/autorun/autorun.pl
+	A bin/indexgen/indexgen.pl, Makefile
+		- Separated a function to output index.html, summary.html, and
+		  report.html
+		- Changed to require the latest p5-YAML at this point
+
+ *** This change makes v6eval require FreeBSD 7.2-RELEASE or higher ***
+
+	M script/pmodV6evalTool/V6evalTool.pm
+		- Changed the filename of packet dump to fit with the standard
+		  pcap filename
+
+
+2009/12/04	akisada
+	M bin/remotes/manual/cleardefr.rmt, clearnc.rmt, clearprefix.rmt,
+	                     clearroute.rmt, ikeResetSA.rmt, ipsecClearAll.rmt,
+	                     ipsecEnable.rmt, ipsecResetSPD.rmt, ipsecSetSAD.rmt,
+	                     ipsecSetSPD.rmt, loginout.rmt, manualaddrconf.rmt,
+	                     mtuconfig.rmt, natpt.rmt, ping6.rmt, route.rmt,
+	                     setDNS.rmt, tcp6.rmt, tunnel.rmt, useTempAddr.rmt
+		- Corrected return values at the error
+
+
+2009/11/26	Release 3.2.0
+	Official release
+
+
+2009/11/25	akisada
+	M lib/Pz/DmObject.cc
+	M lib/Pz/Makefile
+	M lib/Pz/McICMPv6.cc
+	M lib/Pz/McICMPv6.h
+	M lib/Pz/McInit.cc
+		- Supported MLDv1/MLDv2 Multicast Listener Queries
+		  without recompilation
+			* This change removes USE_MLDV2_QUERY preprocessor macro
+			  at lib/Pz/Makefile
+		- Contributed by K.Kawaguchi
+
+	M include/stdpacket.def
+		- Added new macro FEM_icmp6_mldv2query() for MLDv2 packet definition
+			* FEM_icmp6_mldquery() macro can not be used for MLDv2 anymore
+		- Contributed by K.Kawaguchi
+
+	A bin/remotes/manual/mldv2DisableHUT.rmt
+	A bin/remotes/manual/mldv2DisableRUT.rmt
+	A bin/remotes/manual/mldv2EnableHUT.rmt
+	A bin/remotes/manual/mldv2EnableRUT.rmt
+	A bin/remotes/manual/mldv2ListenerAPI.rmt
+	A bin/remotes/manual/mldv2SetHUT.rmt
+	A bin/remotes/manual/mldv2SetRUT.rmt
+		- Added for IPv6 Ready Logo Program Phase-2 MLDv2 test
+		- Contributed by K.Kawaguchi
+
+	M lib/pkt/PktRcvClient.cc
+		- Corrected the comparison between signed and unsigned
+
+
+2009/08/27	akisada
+	M lib/Cm/CmMain.cc
+	M lib/Cm/CmMain.h
+	M lib/pkt/PktRcvClient.cc
+	M lib/pkt/RunEnv.cc
+	M lib/pkt/RunEnv.h
+		- Added -x option enabling hexadecimal dump to pktrecv
+
+
+2009/07/31	akisada
+	M lib/Pz/MfAlgorithm.cc
+	M lib/Pz/MfAlgorithm.h
+	M lib/pkt/LxLexer.cc
+		- Added rijndael_{128,192,256}_2() to packet definition
+		- Added aesctr_160_2() to packet definition
 
 
 2008/10/28	Release 3.1.0
@@ -887,4 +992,7 @@
 
 1999/04/14	Release 0.1
 	first public release
-							[end of CHANGELOG]
+
+
+
+                                                      [end of CHANGELOG]

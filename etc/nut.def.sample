@@ -8,7 +8,7 @@
 System		manual
 
 # System information
-TargetName	FreeBSD 4.9-RELEASE + kame-20040726-freebsd49-snap
+TargetName	FreeBSD/i386 4.9-RELEASE + kame-20040726-freebsd49-snap
 
 # Name
 HostName	target.tahi.org

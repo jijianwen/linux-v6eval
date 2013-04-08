@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+ * Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
  * Yokogawa Electric Corporation, 
- * INTAP(Interoperability Technology Association for Information 
- * Processing, Japan), IPA (Information-technology Promotion Agency, Japan).
+ * INTAP (Interoperability Technology Association for Information Processing, Japan),
+ * IPA (Information-technology Promotion Agency, Japan).
  * All rights reserved.
  * 
  * Redistribution and use of this software in source and binary forms, with 
@@ -41,7 +41,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $TAHI: v6eval/lib/pkt/LxLexer.cc,v 1.31 2008/10/28 01:30:05 akisada Exp $
+ * $TAHI: v6eval/lib/pkt/LxLexer.cc,v 1.34 2010/05/31 06:38:37 doo Exp $
  */
 #define ApplicationLexer LxLexer 
 //----------------------------------------------------------------------
@@ -299,8 +299,11 @@ void LxLexer::initialize() {
 	function(new MfDES3CBC("des3cbc",8*3,8,8));
 	function(new MfDES3CBC_2("des3cbc_2", 8 * 3, 8, 8));	// binary args
 	function(new MfRIJNDAEL("rijndael_128",16,16,16));
+	function(new MfRIJNDAEL_2("rijndael_128_2",16,16,16));	// binary args
 	function(new MfRIJNDAEL("rijndael_192",24,16,16));
+	function(new MfRIJNDAEL_2("rijndael_192_2",24,16,16));	// binary args
 	function(new MfRIJNDAEL("rijndael_256",32,16,16));
+	function(new MfRIJNDAEL_2("rijndael_256_2",32,16,16));	// binary args
 	function(new MfCAMELLIA("camellia_128",16,16,16));
 	function(new MfCAMELLIA("camellia_192",24,16,16));
 	function(new MfCAMELLIA("camellia_256",32,16,16));
@@ -313,6 +316,7 @@ void LxLexer::initialize() {
 			4	// MfCrypt::alignUnit_
 		)
 	);
+	function(new MfAES_CTR_2("aesctr_160_2", 20, 8, 4));
 
 	//--------------------------------------------------------------
 	// AUTH ALGORITHM
@@ -322,15 +326,9 @@ void LxLexer::initialize() {
 	function(new MfHMACSHA1("hmacsha1",12,4));
 	function(new MfHMACSHA1_2("hmacsha1_2", 12, 4));	// binary args
 #if defined(OPENSSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
-#if ! defined(__linux__)
-	function(new MfHMACSHA2_256("hmacsha2_256", 16, 4));
-	function(new MfHMACSHA2_384("hmacsha2_384", 24, 4));
-	function(new MfHMACSHA2_512("hmacsha2_512", 32, 4));
-#else
-	function(new MfHMACSHA2_256("hmacsha2_256",12,4));
-	function(new MfHMACSHA2_384("hmacsha2_384",12,4));
-	function(new MfHMACSHA2_512("hmacsha2_512",12,4));
-#endif
+	function(new MfHMACSHA2_256("hmacsha2_256", 12, 4));
+	function(new MfHMACSHA2_384("hmacsha2_384", 12, 4));
+	function(new MfHMACSHA2_512("hmacsha2_512", 12, 4));
 #endif	// OPENSSL_VERSION_NUMBER
 	function(new MfAES_XCBC("aesxcbc", 12, 4));
 	function(new MfAES_XCBC_2("aesxcbc_2", 12, 4));		// binary args
