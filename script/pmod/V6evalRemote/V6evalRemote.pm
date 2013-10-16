@@ -452,7 +452,7 @@ sub get_prompt($) {
 		}
 		sendMessages("\n");
 	}
-	return($cournt);
+	return($count);
 }
 ####################### End of functoin get_prompt()
 
