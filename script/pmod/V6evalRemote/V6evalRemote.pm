@@ -447,7 +447,7 @@ sub get_prompt($) {
 
 	for(my $d = 0; $d < $timeout; $d ++) {
 		if(defined($Remote->expect(1, '-re', "# "))) {
-			$counrt ++;
+			$count ++;
 			last;
 		}
 		sendMessages("\n");
@@ -479,9 +479,13 @@ sub get_prompt($) {
 #   EscapeChar ~
 #   PermitLocalCommand yes
 #   ControlMaster yes
+#
+#   If you ssh from A to C like A -> B -> C, and exec local cmd on C, it will
+#   actually exec cmd on A, not B. So if you want run test on remote manually,
+#   you have to use console to login B
 #--------------------------------------------------------------------------#
 sub rPutfile($$$) {
-	my($form, $to, $timeout) = @_;
+	my($from, $to, $timeout) = @_;
 
     if (!defined $Remote) {
         print "rOpen() should be called first.\n";
@@ -498,6 +502,7 @@ sub rPutfile($$$) {
 			sub {
 				my $self = shift;
 				$self->send("!scp $from root\@$Host:$to\n");
+				$self->send("\n");
 				exp_continue;
 			}
 		],
@@ -552,7 +557,7 @@ error:
 #   ControlMaster yes
 #--------------------------------------------------------------------------#
 sub rGetfile($$$) {
-	my($form, $to, $timeout) = @_;
+	my($from, $to, $timeout) = @_;
 
     if (!defined $Remote) {
         print "rOpen() should be called first.\n";
@@ -569,6 +574,7 @@ sub rGetfile($$$) {
 			sub {
 				my $self = shift;
 				$self->send("!scp root\@$Host:$from $to\n");
+				$self->send("\n");
 				exp_continue;
 			}
 		],
