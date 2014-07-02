@@ -220,7 +220,7 @@ sub rLogin($)
             '# ',
             sub {
                 my $self = shift;
-                $self->send("date\n");
+                $self->send("uname -r\n");
             }
         ]
     # here we use exit but not return incases of error like
@@ -583,6 +583,7 @@ sub rGetfile($$$) {
 			sub {
 				my $self = shift;
 				$self->send("date\n");
+				$self->send("\n");
 			}
 		]
 	) or print STDERR "can't scp file from ssh\n" and return(0);
